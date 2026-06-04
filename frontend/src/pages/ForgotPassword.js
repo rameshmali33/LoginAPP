@@ -1,61 +1,53 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import API from "../services/api";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!email) {
-      alert("Please enter your email");
-      return;
-    }
+    try {
+      const res = await API.post(
+        "/auth/forgot-password",
+        { email }
+      );
 
-    alert(`Password reset link sent to ${email}`);
+      alert(res.data.message);
+    } catch (error) {
+      alert(
+        error.response?.data?.message ||
+        "Something went wrong"
+      );
+    }
   };
 
   return (
-    <div className="container">
-      <div className="row vh-100 justify-content-center align-items-center">
-        <div className="col-md-5">
-          <div className="card shadow p-4">
+    <div className="container mt-5">
+      <div className="card p-4 shadow">
+        <h2 className="text-center">
+          Forgot Password
+        </h2>
 
-            <h2 className="text-center mb-4">
-              Forgot Password
-            </h2>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            className="form-control mt-3"
+            placeholder="Enter Email"
+            value={email}
+            onChange={(e) =>
+              setEmail(e.target.value)
+            }
+            required
+          />
 
-            <p className="text-center text-muted">
-              Enter your email address and we'll send you a reset link.
-            </p>
-
-            <form onSubmit={handleSubmit}>
-              <input
-                type="email"
-                className="form-control mb-3"
-                placeholder="Enter Email"
-                value={email}
-                onChange={(e) =>
-                  setEmail(e.target.value)
-                }
-              />
-
-              <button
-                type="submit"
-                className="btn btn-warning w-100"
-              >
-                Send Reset Link
-              </button>
-            </form>
-
-            <div className="text-center mt-3">
-              <Link to="/login">
-                Back to Login
-              </Link>
-            </div>
-
-          </div>
-        </div>
+          <button
+            type="submit"
+            className="btn btn-primary w-100 mt-3"
+          >
+            Send Reset Link
+          </button>
+        </form>
       </div>
     </div>
   );
