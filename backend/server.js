@@ -31,3 +31,7 @@ app.use("/api/reports", reportRoutes);
 app.listen(process.env.PORT, () => {
   console.log(`Server running on ${process.env.PORT}`);
 });
+
+app.get("/", (req, res) => {
+  res.send("Employee Management Backend is running");
+});
