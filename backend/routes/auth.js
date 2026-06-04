@@ -57,7 +57,7 @@ router.post("/signup", async (req, res) => {
     console.log("SMTP PASS EXISTS:", !!process.env.SMTP_PASS);
     console.log("EMAIL USER:", process.env.EMAIL_USER);
 
-    const info = await transporter.sendMail({
+    const info = await transporter({
       to: email,
       subject: "Verify Your Email",
       html: `
@@ -186,7 +186,7 @@ router.post("/forgot-password", async (req, res) => {
     console.log("Sending reset password email...");
     console.log("To:", email);
 
-    const info = await transporter.sendMail({
+    const info = await transporter({
       to: email,
       subject: "Password Reset",
       html: `
