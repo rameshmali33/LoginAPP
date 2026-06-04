@@ -35,3 +35,19 @@ app.listen(process.env.PORT, () => {
 app.get("/", (req, res) => {
   res.send("Employee Management Backend is running");
 });
+
+app.get("/test-email", async (req, res) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      subject: "Test Email",
+      text: "Render email test",
+    });
+
+    res.send("Email sent");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+});
