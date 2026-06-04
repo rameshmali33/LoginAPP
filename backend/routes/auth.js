@@ -58,7 +58,6 @@ router.post("/signup", async (req, res) => {
     console.log("EMAIL USER:", process.env.EMAIL_USER);
 
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
       to: email,
       subject: "Verify Your Email",
       html: `
@@ -188,7 +187,6 @@ router.post("/forgot-password", async (req, res) => {
     console.log("To:", email);
 
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
       to: email,
       subject: "Password Reset",
       html: `
