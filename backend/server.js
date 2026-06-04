@@ -12,6 +12,7 @@ const employeeRoutes = require("./routes/employees");
 const employeeSkillRoutes = require("./routes/employeeSkills");
 const dashboardRoutes = require("./routes/dashboard");
 const reportRoutes = require("./routes/reports");
+const transporter = require("./config/mailer");
 
 const app = express();
 
