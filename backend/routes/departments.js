@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
+const authMiddleware = require("../middleware/authMiddleware");
+const roleMiddleware = require("../middleware/roleMiddleware");
 
 // GET all departments
-router.get("/", async (req, res) => {
+router.get("/",authMiddleware, roleMiddleware("admin", "employee"), async (req, res) => {
   try {
     const departments = await pool.query(
       "SELECT * FROM departments ORDER BY id ASC"
@@ -19,7 +21,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST create department
-router.post("/", async (req, res) => {
+router.post("/",authMiddleware, roleMiddleware("admin"), async (req, res) => {
   try {
     const { department_name } = req.body;
 

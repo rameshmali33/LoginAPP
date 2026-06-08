@@ -1,0 +1,267 @@
+.app-layout {
+  min-height: 100vh;
+  display: flex;
+  background: #f4f7fb;
+  transition: all 0.3s ease;
+}
+
+/* Sidebar */
+
+.sidebar {
+  width: 260px;
+  background: #111827;
+  color: white;
+  padding: 25px 20px;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+}
+
+.sidebar-logo h3 {
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+.sidebar-logo p {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 35px;
+}
+
+.sidebar-menu a {
+  color: #d1d5db;
+  text-decoration: none;
+  padding: 12px 15px;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+
+.sidebar-menu a:hover,
+.sidebar-menu a.active {
+  background: #2563eb;
+  color: white;
+}
+
+.sidebar-menu a,
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logout-btn {
+  margin-top: auto;
+  border: none;
+  background: #ef4444;
+  color: white;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* Main */
+
+.main-content {
+  margin-left: 260px;
+  width: calc(100% - 260px);
+}
+
+.topbar {
+  background: white;
+  padding: 20px 30px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.topbar h4 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.topbar span {
+  color: #6b7280;
+}
+
+.page-content {
+  padding: 30px;
+}
+
+/* Cards */
+
+.stat-card,
+.action-card {
+  background: white;
+  border-radius: 18px;
+  padding: 25px;
+  border: none;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+.stat-card h2 {
+  font-weight: 800;
+}
+
+.action-card {
+  cursor: pointer;
+  transition: 0.25s;
+  height: 100%;
+}
+
+.action-card:hover {
+  transform: translateY(-5px);
+}
+
+.icon-box {
+  font-size: 34px;
+  margin-bottom: 12px;
+}
+
+/* Skill Card */
+
+.skill-option {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.skill-option:hover {
+  background: #eef2ff;
+  border-color: #2563eb;
+}
+
+/* Theme Toggle */
+
+.theme-toggle-btn {
+  border: none;
+  background: #2563eb;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===================== */
+/* DARK MODE */
+/* ===================== */
+
+.dark-mode {
+  background: #111827;
+  color: #f3f4f6;
+}
+
+.dark-mode .main-content {
+  background: #111827;
+}
+
+.dark-mode .page-content {
+  background: #111827;
+}
+
+.dark-mode .topbar {
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+}
+
+.dark-mode .topbar h4,
+.dark-mode .topbar span {
+  color: white;
+}
+
+.dark-mode .stat-card,
+.dark-mode .action-card,
+.dark-mode .card {
+  background: #1f2937 !important;
+  color: white;
+  border: 1px solid #374151;
+}
+
+.dark-mode .text-muted {
+  color: #9ca3af !important;
+}
+
+.dark-mode .table {
+  color: white;
+}
+
+.dark-mode .table-light {
+  background: #374151 !important;
+  color: white;
+}
+
+.dark-mode .table > :not(caption) > * > * {
+  background: #1f2937;
+  color: white;
+  border-color: #374151;
+}
+
+.dark-mode .form-control,
+.dark-mode .form-select,
+.dark-mode textarea {
+  background: #111827;
+  color: white;
+  border-color: #374151;
+}
+
+.dark-mode .form-control:focus,
+.dark-mode .form-select:focus,
+.dark-mode textarea:focus {
+  background: #111827;
+  color: white;
+}
+
+.dark-mode .skill-option {
+  background: #111827;
+  border-color: #374151;
+  color: white;
+}
+
+.dark-mode .skill-option:hover {
+  background: #1e3a8a;
+}
+
+.dark-mode .card-body,
+.dark-mode .card-header {
+  color: white;
+}
+
+/* Mobile */
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+  }
+
+  .app-layout {
+    flex-direction: column;
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .topbar {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+}

@@ -1,19 +1,21 @@
 import { useState } from "react";
-import API from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import API from "../services/api";
 
 function Login() {
   const [form, setForm] = useState({
     email: "",
-    password: ""
+    password: "",
   });
 
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({
       ...form,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -21,12 +23,32 @@ function Login() {
     e.preventDefault();
 
     try {
-      const res = await API.post("/auth/login", form);
+      setLoading(true);
+
+      const res = await API.post("/auth/login", {
+        email: form.email.trim(),
+        password: form.password,
+      });
+
       localStorage.setItem("token", res.data.token);
-      alert("Login Success");
+
+      await Swal.fire({
+        icon: "success",
+        title: "Login Successful",
+        text: "Welcome back!",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
       navigate("/dashboard");
     } catch (err) {
-      alert(err.response?.data?.message || "Login Failed");
+      Swal.fire({
+        icon: "error",
+        title: "Login Failed",
+        text: err.response?.data?.message || "Invalid email or password",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,56 +56,56 @@ function Login() {
     <div className="container">
       <div className="row vh-100 justify-content-center align-items-center">
         <div className="col-md-5">
-          <div className="card shadow p-4">
+          <div className="card shadow border-0 p-4">
+            <h2 className="text-center fw-bold mb-2">Welcome Back</h2>
 
-            <h2 className="text-center mb-4">
-              Welcome Back
-            </h2>
+            <p className="text-center text-muted mb-4">
+              Login to continue to your dashboard
+            </p>
 
             <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label className="form-label fw-semibold">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  className="form-control form-control-lg"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                className="form-control mb-3"
-                value={form.email}
-                onChange={handleChange}
-                required
-              />
-
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                className="form-control mb-3"
-                value={form.password}
-                onChange={handleChange}
-                required
-              />
+              <div className="mb-3">
+                <label className="form-label fw-semibold">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Enter your password"
+                  className="form-control form-control-lg"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
               <button
                 type="submit"
-                className="btn btn-primary w-100"
+                className="btn btn-primary btn-lg w-100"
+                disabled={loading}
               >
-                Login
+                {loading ? "Logging in..." : "Login"}
               </button>
-
             </form>
 
             <div className="text-center mt-3">
-              <Link to="/forgot-password">
-                Forgot Password?
-              </Link>
+              <Link to="/forgot-password">Forgot Password?</Link>
             </div>
 
             <div className="text-center mt-2">
-              Don't have an account?{" "}
-              <Link to="/signup">
-                Register
-              </Link>
+              Don't have an account? <Link to="/signup">Register</Link>
             </div>
-
           </div>
         </div>
       </div>

@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import API from "../services/api";
-import Navbar from "../components/Navbar";
+import Layout from "../components/Layout";
 
 function Skills() {
   const [skills, setSkills] = useState([]);
   const [skillName, setSkillName] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const fetchSkills = async () => {
     try {
+      setLoading(true);
       const res = await API.get("/skills");
       setSkills(res.data);
     } catch (error) {
-      console.error(error);
+      Swal.fire("Error", "Error loading skills", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -27,75 +32,97 @@ function Skills() {
         skill_name: skillName,
       });
 
-      alert("Skill Added");
+      Swal.fire("Success", "Skill added successfully", "success");
 
       setSkillName("");
       fetchSkills();
     } catch (error) {
-      alert(
-        error.response?.data?.message ||
-          "Error adding skill"
+      Swal.fire(
+        "Error",
+        error.response?.data?.message || "Error adding skill",
+        "error"
       );
     }
   };
 
   return (
-    <>
-        <Navbar />   
-        <div className="container mt-4">
-        <div className="card shadow p-4">
-            <h2 className="text-center mb-4">
-            Skills Master
-            </h2>
+    <Layout title="Skills">
+      <div className="mb-4">
+        <h2 className="fw-bold mb-1">Skills</h2>
+        <p className="text-muted mb-0">
+          Manage employee technical and professional skills.
+        </p>
+      </div>
 
-            <form onSubmit={handleSubmit}>
-            <div className="row">
-                <div className="col-md-9">
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body p-4">
+          <h5 className="fw-bold mb-3">Add New Skill</h5>
+
+          <form onSubmit={handleSubmit}>
+            <div className="row g-3">
+              <div className="col-md-9">
                 <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Skill Name"
-                    value={skillName}
-                    onChange={(e) =>
-                    setSkillName(e.target.value)
-                    }
-                    required
+                  type="text"
+                  className="form-control form-control-lg"
+                  placeholder="Enter skill name"
+                  value={skillName}
+                  onChange={(e) => setSkillName(e.target.value)}
+                  required
                 />
-                </div>
+              </div>
 
-                <div className="col-md-3">
-                <button
-                    type="submit"
-                    className="btn btn-primary w-100"
-                >
-                    Add Skill
+              <div className="col-md-3">
+                <button type="submit" className="btn btn-success btn-lg w-100">
+                  Add Skill
                 </button>
-                </div>
+              </div>
             </div>
-            </form>
+          </form>
+        </div>
+      </div>
 
-            <hr />
+      <div className="card border-0 shadow-sm">
+        <div className="card-body p-4">
+          <h5 className="fw-bold mb-3">Skill List</h5>
 
-            <table className="table table-bordered table-striped">
-            <thead>
+          {loading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-success"></div>
+            </div>
+          ) : (
+            <table className="table table-hover align-middle">
+              <thead className="table-light">
                 <tr>
-                <th>ID</th>
-                <th>Skill Name</th>
+                  <th>ID</th>
+                  <th>Skill Name</th>
                 </tr>
-            </thead>
+              </thead>
 
-            <tbody>
-                {skills.map((skill) => (
-                <tr key={skill.id}>
-                    <td>{skill.id}</td>
-                    <td>{skill.skill_name}</td>
-                </tr>
-                ))}
-            </tbody>
+              <tbody>
+                {skills.length === 0 ? (
+                  <tr>
+                    <td colSpan="2" className="text-center text-muted py-5">
+                      No skills found
+                    </td>
+                  </tr>
+                ) : (
+                  skills.map((skill) => (
+                    <tr key={skill.id}>
+                      <td>{skill.id}</td>
+                      <td>
+                        <span className="badge bg-success px-3 py-2">
+                          {skill.skill_name}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
             </table>
+          )}
         </div>
-        </div>
-    </>
+      </div>
+    </Layout>
   );
 }
 

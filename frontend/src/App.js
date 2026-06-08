@@ -15,55 +15,30 @@ import EditEmployee from "./pages/EditEmployee";
 import UploadImages from "./pages/UploadImages";
 import AssignSkills from "./pages/AssignSkills";
 import EmployeeReport from "./pages/EmployeeReport";
+import EmployeeProfile from "./pages/EmployeeProfile";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         <Route path="/" element={<Navigate to="/login" />} />
 
         <Route path="/login" element={<Login />} />
-
         <Route path="/signup" element={<Signup />} />
-
         <Route path="/forgot-password" element={<ForgotPassword />} />
-
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/reset-password/:token"
-          element={<ResetPassword />}
-        />
-
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
-        <Route
-          path="/departments"
-           element={<Departments />}
-        />
-
-        <Route path="/skills" element={<Skills />} />
-
-        <Route path="/create-employee" element={<CreateEmployee />} />
-
-        <Route path="/employees" element={<EmployeeList />} />
-
-        <Route path="/edit-employee/:id" element={<EditEmployee />} />
-
-        <Route path="/upload-images/:employeeId" element={<UploadImages />} />
-
-        <Route path="/assign-skills/:employeeId" element={<AssignSkills />} />
-
-        <Route path="/report" element={<EmployeeReport />} />
-
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/departments" element={<ProtectedRoute><Departments /></ProtectedRoute>} />
+        <Route path="/skills" element={<ProtectedRoute><Skills /></ProtectedRoute>} />
+        <Route path="/create-employee" element={<ProtectedRoute><CreateEmployee /></ProtectedRoute>} />
+        <Route path="/employees" element={<ProtectedRoute><EmployeeList /></ProtectedRoute>} />
+        <Route path="/edit-employee/:id" element={<ProtectedRoute><EditEmployee /></ProtectedRoute>} />
+        <Route path="/upload-images/:employeeId" element={<ProtectedRoute><UploadImages /></ProtectedRoute>} />
+        <Route path="/assign-skills/:employeeId" element={<ProtectedRoute><AssignSkills /></ProtectedRoute>} />
+        <Route path="/report" element={<ProtectedRoute><EmployeeReport /></ProtectedRoute>} />
+        <Route path="/employees/:id" element={<ProtectedRoute><EmployeeProfile /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import API from "../services/api";
-import Navbar from "../components/Navbar";
+import Layout from "../components/Layout";
 
 function Departments() {
   const [departments, setDepartments] = useState([]);
   const [departmentName, setDepartmentName] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const fetchDepartments = async () => {
     try {
+      setLoading(true);
       const res = await API.get("/departments");
       setDepartments(res.data);
     } catch (error) {
-      console.error(error);
+      Swal.fire("Error", "Error loading departments", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -27,78 +32,95 @@ function Departments() {
         department_name: departmentName,
       });
 
-      alert("Department Added");
+      Swal.fire("Success", "Department added successfully", "success");
 
       setDepartmentName("");
-
       fetchDepartments();
     } catch (error) {
-      alert(
-        error.response?.data?.message ||
-          "Error adding department"
+      Swal.fire(
+        "Error",
+        error.response?.data?.message || "Error adding department",
+        "error"
       );
     }
   };
 
   return (
-    <>
-        <Navbar />  
-        <div className="container mt-4">
-        <div className="card shadow p-4">
-            <h2 className="text-center mb-4">
-            Department Master
-            </h2>
+    <Layout title="Departments">
+      <div className="mb-4">
+        <h2 className="fw-bold mb-1">Departments</h2>
+        <p className="text-muted mb-0">Create and manage company departments.</p>
+      </div>
 
-            <form onSubmit={handleSubmit}>
-            <div className="row">
-                <div className="col-md-9">
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body p-4">
+          <h5 className="fw-bold mb-3">Add New Department</h5>
+
+          <form onSubmit={handleSubmit}>
+            <div className="row g-3">
+              <div className="col-md-9">
                 <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Department Name"
-                    value={departmentName}
-                    onChange={(e) =>
-                    setDepartmentName(
-                        e.target.value
-                    )
-                    }
-                    required
+                  type="text"
+                  className="form-control form-control-lg"
+                  placeholder="Enter department name"
+                  value={departmentName}
+                  onChange={(e) => setDepartmentName(e.target.value)}
+                  required
                 />
-                </div>
+              </div>
 
-                <div className="col-md-3">
-                <button
-                    type="submit"
-                    className="btn btn-primary w-100"
-                >
-                    Add Department
+              <div className="col-md-3">
+                <button type="submit" className="btn btn-primary btn-lg w-100">
+                  Add Department
                 </button>
-                </div>
+              </div>
             </div>
-            </form>
+          </form>
+        </div>
+      </div>
 
-            <hr />
+      <div className="card border-0 shadow-sm">
+        <div className="card-body p-4">
+          <h5 className="fw-bold mb-3">Department List</h5>
 
-            <table className="table table-bordered table-striped">
-            <thead>
+          {loading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary"></div>
+            </div>
+          ) : (
+            <table className="table table-hover align-middle">
+              <thead className="table-light">
                 <tr>
-                <th>ID</th>
-                <th>Department Name</th>
+                  <th>ID</th>
+                  <th>Department Name</th>
                 </tr>
-            </thead>
+              </thead>
 
-            <tbody>
-                {departments.map((dept) => (
-                <tr key={dept.id}>
-                    <td>{dept.id}</td>
-                    <td>{dept.department_name}</td>
-                </tr>
-                ))}
-            </tbody>
+              <tbody>
+                {departments.length === 0 ? (
+                  <tr>
+                    <td colSpan="2" className="text-center text-muted py-5">
+                      No departments found
+                    </td>
+                  </tr>
+                ) : (
+                  departments.map((dept) => (
+                    <tr key={dept.id}>
+                      <td>{dept.id}</td>
+                      <td>
+                        <span className="badge bg-primary px-3 py-2">
+                          {dept.department_name}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
             </table>
+          )}
         </div>
-        </div>
-    </>
+      </div>
+    </Layout>
   );
 }
 

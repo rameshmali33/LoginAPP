@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
+const authMiddleware = require("../middleware/authMiddleware");
+const roleMiddleware = require("../middleware/roleMiddleware");
 
 // GET Skills
-router.get("/", async (req, res) => {
+router.get("/",authMiddleware, roleMiddleware("admin", "employee"), async (req, res) => {
   try {
     const skills = await pool.query(
       `
@@ -25,7 +27,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST Skill
-router.post("/", async (req, res) => {
+router.post("/",authMiddleware, roleMiddleware("admin"), async (req, res) => {
   try {
     const { skill_name } = req.body;
 
