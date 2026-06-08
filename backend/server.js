@@ -13,6 +13,7 @@ const employeeSkillRoutes = require("./routes/employeeSkills");
 const dashboardRoutes = require("./routes/dashboard");
 const reportRoutes = require("./routes/reports");
 const transporter = require("./config/mailer");
+const profileLinkRequestRoutes = require("./routes/profileLinkRequests");
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/api/uploads", uploadRoutes);
 app.use("/api/employee-skills", employeeSkillRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/profile-link-requests", profileLinkRequestRoutes);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on ${process.env.PORT}`);

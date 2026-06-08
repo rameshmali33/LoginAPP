@@ -16,6 +16,8 @@ import UploadImages from "./pages/UploadImages";
 import AssignSkills from "./pages/AssignSkills";
 import EmployeeReport from "./pages/EmployeeReport";
 import EmployeeProfile from "./pages/EmployeeProfile";
+import ProfileLinkRequest from "./pages/ProfileLinkRequest";
+import ProfileLinkRequestsAdmin from "./pages/ProfileLinkRequestsAdmin";
 
 function App() {
   return (
@@ -39,6 +41,8 @@ function App() {
         <Route path="/assign-skills/:employeeId" element={<ProtectedRoute><AssignSkills /></ProtectedRoute>} />
         <Route path="/report" element={<ProtectedRoute><EmployeeReport /></ProtectedRoute>} />
         <Route path="/employees/:id" element={<ProtectedRoute><EmployeeProfile /></ProtectedRoute>} />
+        <Route path="/request-profile-link" element={<ProtectedRoute><ProfileLinkRequest /></ProtectedRoute>} />
+        <Route path="/profile-link-requests" element={<ProtectedRoute><ProfileLinkRequestsAdmin /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

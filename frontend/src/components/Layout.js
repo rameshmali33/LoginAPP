@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   FaChartLine,
+  FaLink,
   FaBuilding,
   FaTools,
   FaUserPlus,
@@ -89,6 +90,10 @@ function Layout({ children, title }) {
 
               <NavLink to="/report">
                 <FaFileAlt /> Reports
+              </NavLink>
+
+              <NavLink to="/profile-link-requests">
+                <FaLink /> Link Requests
               </NavLink>
             </>
           )}

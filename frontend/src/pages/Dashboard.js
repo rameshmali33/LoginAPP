@@ -152,8 +152,25 @@ function Dashboard() {
             : "Here is your personal employee dashboard."}
         </p>
       </div>
-
-      {stats?.dashboardType === "employee" ? (
+      
+              {stats?.dashboardType === "unlinked_employee" ? (
+          <div className="card border-0 shadow-sm">
+            <div className="card-body p-5 text-center">
+              <div className="display-1 mb-3">🔗</div>
+              <h3 className="fw-bold">Profile Not Linked</h3>
+              <p className="text-muted mb-0">{stats.message}</p>
+              <p className="text-muted mt-2">
+                Please contact admin to link your user account with an employee profile.
+              </p>
+              <button
+                className="btn btn-primary mt-3"
+                onClick={() => navigate("/request-profile-link")}
+              >
+                Request Profile Link
+              </button>
+            </div>
+          </div>
+        ) : stats?.dashboardType === "employee" ? (     
         <>
           <div className="row g-4 mb-5">
             <div className="col-lg-4 col-md-6">
