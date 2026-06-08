@@ -18,6 +18,7 @@ import EmployeeReport from "./pages/EmployeeReport";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import ProfileLinkRequest from "./pages/ProfileLinkRequest";
 import ProfileLinkRequestsAdmin from "./pages/ProfileLinkRequestsAdmin";
+import LeaveManagement from "./pages/LeaveManagement";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
         <Route path="/employees/:id" element={<ProtectedRoute><EmployeeProfile /></ProtectedRoute>} />
         <Route path="/request-profile-link" element={<ProtectedRoute><ProfileLinkRequest /></ProtectedRoute>} />
         <Route path="/profile-link-requests" element={<ProtectedRoute><ProfileLinkRequestsAdmin /></ProtectedRoute>} />
+        <Route path="/leaves" element={<ProtectedRoute><LeaveManagement /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

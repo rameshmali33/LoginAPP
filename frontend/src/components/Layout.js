@@ -13,6 +13,7 @@ import {
   FaMoon,
   FaSun,
   FaUserCircle,
+  FaCalendarCheck,
 } from "react-icons/fa";
 import "./Layout.css";
 
@@ -63,6 +64,12 @@ function Layout({ children, title }) {
           <NavLink to="/dashboard">
             <FaChartLine /> Dashboard
           </NavLink>
+
+          {role && (
+            <NavLink to="/leaves">
+              <FaCalendarCheck /> Leaves
+            </NavLink>
+          )}
 
           {role === "employee" && employeeProfileId && (
             <NavLink to={`/employees/${employeeProfileId}`}>
