@@ -38,12 +38,13 @@ router.post("/signup", async (req, res) => {
         name,
         email,
         password,
-        verification_token
+        verification_token,
+        role
       )
-      VALUES($1, $2, $3, $4)
+      VALUES($1, $2, $3, $4, $5)
       RETURNING *
       `,
-      [name, email, hashedPassword, verificationToken]
+      [name, email, hashedPassword, verificationToken, "employee"]
     );
 
     const verifyLink =
