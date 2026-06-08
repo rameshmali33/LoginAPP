@@ -6,7 +6,6 @@ import {
   FaHistory,
   FaCheckDouble,
   FaChartBar,
-  FaBuilding,
   FaClock,
 } from "react-icons/fa";
 import { Pie, Bar } from "react-chartjs-2";
@@ -82,6 +81,7 @@ function LeaveManagement() {
     }
 
     loadInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role]);
 
   const loadInitialData = async () => {
@@ -207,30 +207,30 @@ function LeaveManagement() {
   // Setup Reports Charts Data
   const deptChartData = reportsData
     ? {
-        labels: reportsData.departmentLeaves.map((d) => d.department_name),
-        datasets: [
-          {
-            label: "Total Leaves Days Approved",
-            data: reportsData.departmentLeaves.map((d) => parseInt(d.total_days || 0)),
-            backgroundColor: ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"],
-            borderWidth: 1,
-          },
-        ],
-      }
+      labels: reportsData.departmentLeaves.map((d) => d.department_name),
+      datasets: [
+        {
+          label: "Total Leaves Days Approved",
+          data: reportsData.departmentLeaves.map((d) => parseInt(d.total_days || 0)),
+          backgroundColor: ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"],
+          borderWidth: 1,
+        },
+      ],
+    }
     : null;
 
   const trendChartData = reportsData
     ? {
-        labels: reportsData.monthlyTrends.map((t) => t.month_year),
-        datasets: [
-          {
-            label: "Approved Request Count",
-            data: reportsData.monthlyTrends.map((t) => parseInt(t.leave_count || 0)),
-            backgroundColor: "#4F46E5",
-            borderRadius: 6,
-          },
-        ],
-      }
+      labels: reportsData.monthlyTrends.map((t) => t.month_year),
+      datasets: [
+        {
+          label: "Approved Request Count",
+          data: reportsData.monthlyTrends.map((t) => parseInt(t.leave_count || 0)),
+          backgroundColor: "#4F46E5",
+          borderRadius: 6,
+        },
+      ],
+    }
     : null;
 
   if (loading) {
@@ -257,9 +257,8 @@ function LeaveManagement() {
 
           {(role === "manager" || role === "admin") && (
             <button
-              className={`btn ${
-                activeTab === "manager-approvals" ? "btn-primary" : "btn-outline-primary"
-              }`}
+              className={`btn ${activeTab === "manager-approvals" ? "btn-primary" : "btn-outline-primary"
+                }`}
               onClick={() => setActiveTab("manager-approvals")}
             >
               <FaClock className="me-2" /> Manager Reviews ({managerPending.length})
