@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://loginapp-ezh0.onrender.com",
+  baseURL: "https://loginapp-ezh0.onrender.com/api",
 });
 
 API.interceptors.request.use((req) => {
