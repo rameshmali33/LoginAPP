@@ -142,35 +142,52 @@ function Dashboard() {
     );
   }
 
+  if (!stats) {
+    return (
+      <Layout title="Dashboard">
+        <div className="card border-0 shadow-sm">
+          <div className="card-body p-5 text-center">
+            <h3 className="fw-bold">No Dashboard Data</h3>
+            <p className="text-muted mb-0">Please try refreshing the page.</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout title="Dashboard">
       <div className="mb-4">
         <h2 className="fw-bold">Welcome, {user.name} 👋</h2>
         <p className="text-muted">
-          {stats?.dashboardType === "admin"
+          {stats.dashboardType === "admin"
             ? "Here is the complete overview of your Employee Profile Management System."
+            : stats.dashboardType === "unlinked_employee"
+            ? "Your account is active, but your employee profile is not linked yet."
             : "Here is your personal employee dashboard."}
         </p>
       </div>
-      
-              {stats?.dashboardType === "unlinked_employee" ? (
-          <div className="card border-0 shadow-sm">
-            <div className="card-body p-5 text-center">
-              <div className="display-1 mb-3">🔗</div>
-              <h3 className="fw-bold">Profile Not Linked</h3>
-              <p className="text-muted mb-0">{stats.message}</p>
-              <p className="text-muted mt-2">
-                Please contact admin to link your user account with an employee profile.
-              </p>
-              <button
-                className="btn btn-primary mt-3"
-                onClick={() => navigate("/request-profile-link")}
-              >
-                Request Profile Link
-              </button>
-            </div>
+
+      {stats.dashboardType === "unlinked_employee" ? (
+        <div className="card border-0 shadow-sm">
+          <div className="card-body p-5 text-center">
+            <div className="display-1 mb-3">🔗</div>
+            <h3 className="fw-bold">Profile Not Linked</h3>
+            <p className="text-muted mb-0">{stats.message}</p>
+            <p className="text-muted mt-2">
+              Please send a request to admin to link your user account with an
+              employee profile.
+            </p>
+
+            <button
+              className="btn btn-primary mt-3"
+              onClick={() => navigate("/request-profile-link")}
+            >
+              Request Profile Link
+            </button>
           </div>
-        ) : stats?.dashboardType === "employee" ? (     
+        </div>
+      ) : stats.dashboardType === "employee" ? (
         <>
           <div className="row g-4 mb-5">
             <div className="col-lg-4 col-md-6">
