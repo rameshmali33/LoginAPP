@@ -50,7 +50,12 @@ function Dashboard() {
       }
     } catch (error) {
       console.error("Dashboard Error:", error);
-      Swal.fire("Error", "Error loading dashboard data", "error");
+
+      if (error.response?.data) {
+        setStats(error.response.data);
+      }else {
+        Swal.fire("Error", "Error loading dashboard data", "error");
+      }
     } finally {
       setLoading(false);
     }

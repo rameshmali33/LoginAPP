@@ -15,7 +15,7 @@ router.get(
       
       if (req.user.role === "employee") {
         if (!req.user.employee_profile_id) {
-          return res.status(400).json({
+          return res.status(200).json({
             dashboardType: "unlinked_employee",
             message: "Your employee profile is not linked yet. Please contact admin.",
           });
