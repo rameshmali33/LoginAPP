@@ -31,6 +31,7 @@ function Dashboard() {
 
   const [stats, setStats] = useState(null);
   const [employees, setEmployees] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -330,16 +331,18 @@ function Dashboard() {
                 <div className="row g-3">
                   {stats.images.map((img) => (
                     <div className="col-md-3 col-6" key={img.id}>
-                      <img
-                        src={img.image_url}
-                        alt="Employee"
-                        className="img-fluid rounded shadow-sm"
-                        style={{
-                          height: "140px",
-                          width: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
+                      <div
+                        className="border rounded shadow-sm overflow-hidden"
+                        style={{ cursor: "pointer", height: "140px" }}
+                        onClick={() => setSelectedImage(img.image_url || img.url)}
+                      >
+                        <img
+                          src={img.image_url || img.url}
+                          alt="Employee"
+                          className="img-fluid w-100 h-100"
+                          style={{ objectFit: "cover" }}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -605,6 +608,45 @@ function Dashboard() {
             </div>
           </div>
         </>
+      )}
+      {selectedImage && (
+        <div
+          className="modal fade show"
+          style={{
+            display: "block",
+            backgroundColor: "rgba(0,0,0,0.7)",
+          }}
+          tabIndex="-1"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div
+            className="modal-dialog modal-dialog-centered modal-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-content border-0">
+              <div className="modal-header">
+                <h5 className="modal-title">Image Preview</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setSelectedImage(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body text-center">
+                <img
+                  src={selectedImage}
+                  alt="Preview"
+                  className="img-fluid rounded"
+                  style={{
+                    maxHeight: "70vh",
+                    objectFit: "contain",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </Layout>
   );
