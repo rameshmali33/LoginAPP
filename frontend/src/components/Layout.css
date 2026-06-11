@@ -16,6 +16,7 @@
   flex-direction: column;
   position: fixed;
   height: 100vh;
+  overflow: hidden;
 }
 
 .sidebar-logo h3 {
@@ -33,6 +34,10 @@
   flex-direction: column;
   gap: 10px;
   margin-top: 35px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 20px;
 }
 
 .sidebar-menu a {
@@ -57,7 +62,6 @@
 }
 
 .logout-btn {
-  margin-top: auto;
   border: none;
   background: #ef4444;
   color: white;

@@ -4,6 +4,7 @@ const pool = require("../config/db");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const ExcelJS = require("exceljs");
+const logger = require("../utils/logger");
 
 const employeeReportQuery = `
   SELECT
@@ -59,7 +60,7 @@ router.get(
       const result = await pool.query(employeeReportQuery);
       res.json(result.rows);
     } catch (error) {
-      console.error("Report Error:", error);
+      logger.error("Report Error:", error);
       res.status(500).json({
         message: "Server Error",
       });
@@ -113,10 +114,226 @@ router.get(
       await workbook.xlsx.write(res);
       res.end();
     } catch (error) {
-      console.error("Export Error:", error);
+      logger.error("Export Error:", error);
       res.status(500).json({
         message: "Export Failed",
       });
+    }
+  }
+);
+
+/**
+ * GET /api/reports/leaves
+ * Get leave report data
+ */
+router.get(
+  "/leaves",
+  authMiddleware,
+  roleMiddleware("hr", "admin"),
+  async (req, res, next) => {
+    try {
+      const query = `
+        SELECT 
+          u.id,
+          u.name,
+          d.department_name,
+          lt.leave_name,
+          la.from_date,
+          la.to_date,
+          la.total_days,
+          la.status,
+          la.reason,
+          la.created_at
+        FROM leave_applications la
+        JOIN users u ON u.id = (SELECT user_id FROM employee_profiles WHERE id = la.employee_id)
+        LEFT JOIN employee_profiles ep ON ep.user_id = u.id
+        LEFT JOIN departments d ON d.id = ep.department_id
+        JOIN leave_types lt ON lt.id = la.leave_type_id
+        ORDER BY la.created_at DESC
+      `;
+      const result = await pool.query(query);
+      res.json({
+        success: true,
+        message: "Leave report retrieved",
+        data: result.rows,
+      });
+    } catch (error) {
+      logger.error("Leave Report Error:", error);
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/reports/leaves/export
+ * Export leave report to Excel
+ */
+router.get(
+  "/leaves/export",
+  authMiddleware,
+  roleMiddleware("hr", "admin"),
+  async (req, res, next) => {
+    try {
+      const query = `
+        SELECT 
+          u.id,
+          u.name,
+          d.department_name,
+          lt.leave_name,
+          la.from_date,
+          la.to_date,
+          la.total_days,
+          la.status,
+          la.reason,
+          la.created_at
+        FROM leave_applications la
+        JOIN users u ON u.id = (SELECT user_id FROM employee_profiles WHERE id = la.employee_id)
+        LEFT JOIN employee_profiles ep ON ep.user_id = u.id
+        LEFT JOIN departments d ON d.id = ep.department_id
+        JOIN leave_types lt ON lt.id = la.leave_type_id
+        ORDER BY la.created_at DESC
+      `;
+      const result = await pool.query(query);
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Leave Report");
+
+      worksheet.columns = [
+        { header: "Name", key: "name", width: 25 },
+        { header: "Department", key: "department_name", width: 20 },
+        { header: "Leave Type", key: "leave_name", width: 15 },
+        { header: "From Date", key: "from_date", width: 15 },
+        { header: "To Date", key: "to_date", width: 15 },
+        { header: "Total Days", key: "total_days", width: 12 },
+        { header: "Status", key: "status", width: 15 },
+        { header: "Reason", key: "reason", width: 30 },
+        { header: "Applied On", key: "created_at", width: 15 },
+      ];
+
+      worksheet.addRows(result.rows);
+      worksheet.getRow(1).font = { bold: true };
+
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=leave_report.xlsx"
+      );
+
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      logger.error("Leave Export Error:", error);
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/reports/assets
+ * Get asset report data
+ */
+router.get(
+  "/assets",
+  authMiddleware,
+  roleMiddleware("admin"),
+  async (req, res, next) => {
+    try {
+      const query = `
+        SELECT 
+          a.id,
+          a.asset_code,
+          a.asset_name,
+          a.asset_type,
+          a.purchase_date,
+          a.purchase_cost,
+          a.status,
+          u.name as allocated_to,
+          aa.allocated_date,
+          aa.return_date
+        FROM assets a
+        LEFT JOIN asset_allocations aa ON a.id = aa.asset_id AND aa.status = 'allocated'
+        LEFT JOIN employee_profiles ep ON aa.employee_id = ep.id
+        LEFT JOIN users u ON ep.user_id = u.id
+        ORDER BY a.created_at DESC
+      `;
+      const result = await pool.query(query);
+      res.json({
+        success: true,
+        message: "Asset report retrieved",
+        data: result.rows,
+      });
+    } catch (error) {
+      logger.error("Asset Report Error:", error);
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/reports/assets/export
+ * Export asset report to Excel
+ */
+router.get(
+  "/assets/export",
+  authMiddleware,
+  roleMiddleware("admin"),
+  async (req, res, next) => {
+    try {
+      const query = `
+        SELECT 
+          a.id,
+          a.asset_code,
+          a.asset_name,
+          a.asset_type,
+          a.purchase_date,
+          a.purchase_cost,
+          a.status,
+          u.name as allocated_to,
+          aa.allocated_date,
+          aa.return_date
+        FROM assets a
+        LEFT JOIN asset_allocations aa ON a.id = aa.asset_id AND aa.status = 'allocated'
+        LEFT JOIN employee_profiles ep ON aa.employee_id = ep.id
+        LEFT JOIN users u ON ep.user_id = u.id
+        ORDER BY a.created_at DESC
+      `;
+      const result = await pool.query(query);
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Asset Report");
+
+      worksheet.columns = [
+        { header: "Asset Code", key: "asset_code", width: 15 },
+        { header: "Asset Name", key: "asset_name", width: 25 },
+        { header: "Type", key: "asset_type", width: 15 },
+        { header: "Purchase Date", key: "purchase_date", width: 15 },
+        { header: "Purchase Cost", key: "purchase_cost", width: 15 },
+        { header: "Status", key: "status", width: 15 },
+        { header: "Allocated To", key: "allocated_to", width: 20 },
+        { header: "Allocated Date", key: "allocated_date", width: 15 },
+        { header: "Return Date", key: "return_date", width: 15 },
+      ];
+
+      worksheet.addRows(result.rows);
+      worksheet.getRow(1).font = { bold: true };
+
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=asset_report.xlsx"
+      );
+
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      logger.error("Asset Export Error:", error);
+      next(error);
     }
   }
 );

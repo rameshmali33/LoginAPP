@@ -17,7 +17,13 @@ const reportRoutes = require("./routes/reports");
 const transporter = require("./config/mailer");
 const profileLinkRequestRoutes = require("./routes/profileLinkRequests");
 const leaveRoutes = require("./routes/leaves");
+const assetRoutes = require("./routes/assets");
+const notificationRoutes = require("./routes/notifications");
+const auditRoutes = require("./routes/audit");
+const searchRoutes = require("./routes/search");
 const { swaggerUi, swaggerDocument } = require("./config/swagger");
+const logger = require("./utils/logger");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -57,9 +63,13 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/profile-link-requests", profileLinkRequestRoutes);
 app.use("/api/leaves", leaveRoutes);
+app.use("/api/assets", assetRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/audit-logs", auditRoutes);
+app.use("/api/search", searchRoutes);
 
 app.listen(process.env.PORT, () => {
-  console.log(`Server running on ${process.env.PORT}`);
+  logger.info(`🚀 Server running on port ${process.env.PORT}`);
 });
 
 app.get("/", (req, res) => {
@@ -77,7 +87,10 @@ app.get("/test-email", async (req, res) => {
 
     res.send("Email sent");
   } catch (error) {
-    console.error(error);
+    logger.error("Test email failed:", error);
     res.status(500).send(error.message);
   }
 });
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
