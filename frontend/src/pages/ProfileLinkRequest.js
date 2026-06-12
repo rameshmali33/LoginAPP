@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import API from "../services/api";
 import Layout from "../components/Layout";
 
 function ProfileLinkRequest() {
+  const token = localStorage.getItem("token");
+  const user = token ? jwtDecode(token) : {};
+
   const [employees, setEmployees] = useState([]);
   const [employeeProfileId, setEmployeeProfileId] = useState("");
   const [message, setMessage] = useState("");
@@ -17,8 +21,19 @@ function ProfileLinkRequest() {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
+
       const res = await API.get("/employees");
-      setEmployees(res.data);
+
+      const matchedProfiles = res.data.filter(
+        (emp) =>
+          emp.email?.toLowerCase().trim() === user.email?.toLowerCase().trim()
+      );
+
+      setEmployees(matchedProfiles);
+
+      if (matchedProfiles.length === 1) {
+        setEmployeeProfileId(matchedProfiles[0].id);
+      }
     } catch (error) {
       Swal.fire("Error", "Error loading employee profiles", "error");
     } finally {
@@ -30,7 +45,7 @@ function ProfileLinkRequest() {
     e.preventDefault();
 
     if (!employeeProfileId) {
-      Swal.fire("Required", "Please select your employee profile", "warning");
+      Swal.fire("Required", "Employee profile not found", "warning");
       return;
     }
 
@@ -39,11 +54,12 @@ function ProfileLinkRequest() {
 
       const res = await API.post("/profile-link-requests", {
         employee_profile_id: employeeProfileId,
-        message,
+        message:
+          message.trim() ||
+          `Please link my user account (${user.email}) with my employee profile.`,
       });
 
       await Swal.fire("Submitted", res.data.message, "success");
-      setEmployeeProfileId("");
       setMessage("");
     } catch (error) {
       Swal.fire(
@@ -61,7 +77,7 @@ function ProfileLinkRequest() {
       <div className="mb-4">
         <h2 className="fw-bold mb-1">Request Profile Link</h2>
         <p className="text-muted mb-0">
-          Select your employee profile and send a link request to admin.
+          Your account email will be matched with an employee profile.
         </p>
       </div>
 
@@ -70,22 +86,40 @@ function ProfileLinkRequest() {
           {loading ? (
             <div className="text-center py-5">
               <div className="spinner-border text-primary"></div>
-              <p className="text-muted mt-3">Loading profiles...</p>
+              <p className="text-muted mt-3">Checking your employee profile...</p>
+            </div>
+          ) : employees.length === 0 ? (
+            <div className="text-center py-5">
+              <div className="display-1 mb-3">🔍</div>
+              <h3 className="fw-bold">No Employee Profile Found</h3>
+
+              <p className="text-muted mb-1">
+                We could not find an employee profile for:
+              </p>
+
+              <h5 className="fw-bold mb-3">{user.email}</h5>
+
+              <p className="text-muted mb-0">
+                Please contact admin to create your employee profile first.
+              </p>
             </div>
           ) : (
             <form onSubmit={submitRequest}>
+              <div className="alert alert-success">
+                Matching employee profile found for your email.
+              </div>
+
               <div className="mb-4">
                 <label className="form-label fw-semibold">
-                  Select Employee Profile
+                  Matched Employee Profile
                 </label>
 
                 <select
                   className="form-select form-select-lg"
                   value={employeeProfileId}
                   onChange={(e) => setEmployeeProfileId(e.target.value)}
+                  disabled={employees.length === 1}
                 >
-                  <option value="">Select your profile</option>
-
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>
                       {emp.name} - {emp.email} - {emp.department_name || "N/A"}
@@ -102,7 +136,7 @@ function ProfileLinkRequest() {
                 <textarea
                   className="form-control"
                   rows="4"
-                  placeholder="Example: I am Rahul from IT department. Please link my profile."
+                  placeholder="Optional message to admin"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                 />

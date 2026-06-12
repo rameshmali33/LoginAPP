@@ -21,6 +21,7 @@ const assetRoutes = require("./routes/assets");
 const notificationRoutes = require("./routes/notifications");
 const auditRoutes = require("./routes/audit");
 const searchRoutes = require("./routes/search");
+const healthRoutes = require("./routes/health");
 const { swaggerUi, swaggerDocument } = require("./config/swagger");
 const logger = require("./utils/logger");
 const errorHandler = require("./middleware/errorHandler");
@@ -67,6 +68,7 @@ app.use("/api/assets", assetRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/audit-logs", auditRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/health", healthRoutes);
 
 app.listen(process.env.PORT, () => {
   logger.info(`🚀 Server running on port ${process.env.PORT}`);
