@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "cd frontend && npm run build"
+    "build": "cd frontend && npm install --no-audit --no-fund && npm run build"
   },
   "dependencies": {
     "nodemailer": "^8.0.10"
