@@ -3,7 +3,7 @@
     "build": "cd frontend && npm install --no-audit --no-fund && npm run build"
   },
   "engines": {
-    "node": "18.x"
+    "node": "24.x"
   },
   "dependencies": {
     "nodemailer": "^8.0.10"
