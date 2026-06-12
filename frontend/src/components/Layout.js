@@ -144,13 +144,6 @@ function Layout({ children, title }) {
               </NavLink>
             </>
           )}
-
-          <NavLink to="/notifications">
-            <FaBell /> Notifications
-            {unreadNotifications > 0 && (
-              <span className="badge bg-danger ms-2">{unreadNotifications}</span>
-            )}
-          </NavLink>
           {role ? (
             <button className="logout-btn" onClick={logout}>
               <FaSignOutAlt /> Logout
@@ -181,6 +174,23 @@ function Layout({ children, title }) {
 
           <div className="d-flex align-items-center gap-3">
             <GlobalSearch />
+
+            {role && (
+              <button
+                type="button"
+                className="topbar-icon-btn position-relative"
+                onClick={() => navigate("/notifications")}
+                aria-label="Notifications"
+                title="Notifications"
+              >
+                <FaBell />
+                {unreadNotifications > 0 && (
+                  <span className="notification-badge">
+                    {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                  </span>
+                )}
+              </button>
+            )}
 
             <button
               className="theme-toggle-btn"

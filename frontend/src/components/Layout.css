@@ -161,6 +161,45 @@
   gap: 8px;
 }
 
+.topbar-icon-btn {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: 0.2s;
+}
+
+.topbar-icon-btn:hover {
+  background: #eef2ff;
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ===================== */
 /* DARK MODE */
 /* ===================== */
@@ -186,6 +225,22 @@
 .dark-mode .topbar h4,
 .dark-mode .topbar span {
   color: white;
+}
+
+.dark-mode .topbar-icon-btn {
+  background: #111827;
+  border-color: #374151;
+  color: #f3f4f6;
+}
+
+.dark-mode .topbar-icon-btn:hover {
+  background: #1e3a8a;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.dark-mode .notification-badge {
+  border-color: #1f2937;
 }
 
 .dark-mode .stat-card,
