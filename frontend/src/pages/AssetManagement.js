@@ -4,7 +4,6 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import FormTable from "../components/FormTable";
 import FormInput from "../components/FormInput";
@@ -25,7 +24,6 @@ const AssetManagement = () => {
   const [allocation, setAllocation] = useState(null);
   const [history, setHistory] = useState([]);
   const [filters, setFilters] = useState({ status: "", asset_type: "" });
-  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     asset_code: "",
@@ -140,7 +138,16 @@ const AssetManagement = () => {
     { key: "asset_code", label: "Code", sortable: true },
     { key: "asset_name", label: "Name", sortable: true },
     { key: "asset_type", label: "Type" },
-    { key: "purchase_cost", label: "Cost", render: (val) => `$${val}` },
+    {
+      key: "purchase_cost",
+      label: "Cost",
+      render: (val) =>
+        Number(val || 0).toLocaleString("en-IN", {
+          style: "currency",
+          currency: "INR",
+          maximumFractionDigits: 0,
+        }),
+    },
     {
       key: "status",
       label: "Status",

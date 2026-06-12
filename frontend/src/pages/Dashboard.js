@@ -108,16 +108,40 @@ function Dashboard() {
       else salaryBands["100k+"] += 1;
     });
 
-    const statusCounts = {
-      Active: Number(stats?.activeEmployees || 0),
-      Inactive: Number(stats?.inactiveEmployees || 0),
-    };
-
     const topPaidEmployees = [...employees]
       .sort((a, b) => Number(b.salary || 0) - Number(a.salary || 0))
       .slice(0, 8);
 
-    return { departmentCounts, salaryBands, statusCounts, topPaidEmployees };
+    const employeeTotal = employees.length || Number(stats?.employees || 0);
+    const activeTotal = employees.length
+      ? employees.filter((emp) => emp.status === "active").length
+      : Number(stats?.activeEmployees || 0);
+    const inactiveTotal = employees.length
+      ? employees.filter((emp) => emp.status === "inactive").length
+      : Number(stats?.inactiveEmployees || 0);
+    const salaries = employees.map((emp) => Number(emp.salary || 0));
+    const averageSalary = salaries.length
+      ? Math.round(salaries.reduce((total, salary) => total + salary, 0) / salaries.length)
+      : Number(stats?.averageSalary || 0);
+    const highestSalary = salaries.length
+      ? Math.max(...salaries)
+      : Number(stats?.highestSalary || 0);
+    const statusCounts = {
+      Active: activeTotal,
+      Inactive: inactiveTotal,
+    };
+
+    return {
+      departmentCounts,
+      salaryBands,
+      statusCounts,
+      topPaidEmployees,
+      employeeTotal,
+      activeTotal,
+      inactiveTotal,
+      averageSalary,
+      highestSalary,
+    };
   }, [employees, stats]);
 
   const chartPalette = ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#7c3aed", "#0891b2", "#db2777"];
@@ -221,12 +245,12 @@ function Dashboard() {
         ) : (
           <>
             <div className="metric-grid">
-              <MetricCard icon={<FaUsers />} label="Total Employees" value={stats.employees} tone="blue" />
-              <MetricCard icon={<FaCheckCircle />} label="Active Employees" value={stats.activeEmployees} tone="green" />
+              <MetricCard icon={<FaUsers />} label="Total Employees" value={adminAnalytics.employeeTotal} tone="blue" />
+              <MetricCard icon={<FaCheckCircle />} label="Active Employees" value={adminAnalytics.activeTotal} tone="green" />
               <MetricCard icon={<FaBuilding />} label="Departments" value={stats.departments} tone="amber" />
               <MetricCard icon={<FaTools />} label="Skills Catalog" value={stats.skills} tone="violet" />
-              <MetricCard icon={<FaMoneyBillWave />} label="Average Salary" value={formatCurrency(stats.averageSalary)} tone="cyan" />
-              <MetricCard icon={<FaChartLine />} label="Highest Salary" value={formatCurrency(stats.highestSalary)} tone="rose" />
+              <MetricCard icon={<FaMoneyBillWave />} label="Average Salary" value={formatCurrency(adminAnalytics.averageSalary)} tone="cyan" />
+              <MetricCard icon={<FaChartLine />} label="Highest Salary" value={formatCurrency(adminAnalytics.highestSalary)} tone="rose" />
               <MetricCard icon={<FaBriefcase />} label="With Skills" value={stats.employeesWithSkills} tone="slate" />
               <MetricCard icon={<FaFileAlt />} label="Profile Images" value={stats.images} tone="indigo" />
             </div>
