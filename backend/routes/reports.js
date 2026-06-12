@@ -51,6 +51,55 @@ const employeeReportQuery = `
   ORDER BY ep.id ASC
 `;
 
+const leaveReportQuery = `
+  SELECT
+    la.id,
+    ep.id AS employee_id,
+    ep.name,
+    ep.email,
+    d.department_name,
+    lt.leave_name,
+    la.from_date,
+    la.to_date,
+    la.total_days,
+    la.status,
+    la.reason,
+    la.created_at
+  FROM leave_applications la
+  INNER JOIN employee_profiles ep
+    ON ep.id = la.employee_id
+  LEFT JOIN departments d
+    ON d.id = ep.department_id
+  INNER JOIN leave_types lt
+    ON lt.id = la.leave_type_id
+  ORDER BY la.created_at DESC
+`;
+
+const assetReportQuery = `
+  SELECT
+    a.id,
+    a.asset_code,
+    a.asset_name,
+    a.asset_type,
+    a.purchase_date,
+    a.purchase_cost,
+    a.status,
+    ep.name AS allocated_to,
+    ep.email AS allocated_to_email,
+    d.department_name AS allocated_department,
+    aa.allocated_date,
+    aa.return_date
+  FROM assets a
+  LEFT JOIN asset_allocations aa
+    ON a.id = aa.asset_id
+    AND aa.status = 'allocated'
+  LEFT JOIN employee_profiles ep
+    ON aa.employee_id = ep.id
+  LEFT JOIN departments d
+    ON d.id = ep.department_id
+  ORDER BY a.created_at DESC
+`;
+
 router.get(
   "/employees",
   authMiddleware,
@@ -132,26 +181,7 @@ router.get(
   roleMiddleware("hr", "admin"),
   async (req, res, next) => {
     try {
-      const query = `
-        SELECT 
-          u.id,
-          u.name,
-          d.department_name,
-          lt.leave_name,
-          la.from_date,
-          la.to_date,
-          la.total_days,
-          la.status,
-          la.reason,
-          la.created_at
-        FROM leave_applications la
-        JOIN users u ON u.id = (SELECT user_id FROM employee_profiles WHERE id = la.employee_id)
-        LEFT JOIN employee_profiles ep ON ep.user_id = u.id
-        LEFT JOIN departments d ON d.id = ep.department_id
-        JOIN leave_types lt ON lt.id = la.leave_type_id
-        ORDER BY la.created_at DESC
-      `;
-      const result = await pool.query(query);
+      const result = await pool.query(leaveReportQuery);
       res.json({
         success: true,
         message: "Leave report retrieved",
@@ -174,26 +204,7 @@ router.get(
   roleMiddleware("hr", "admin"),
   async (req, res, next) => {
     try {
-      const query = `
-        SELECT 
-          u.id,
-          u.name,
-          d.department_name,
-          lt.leave_name,
-          la.from_date,
-          la.to_date,
-          la.total_days,
-          la.status,
-          la.reason,
-          la.created_at
-        FROM leave_applications la
-        JOIN users u ON u.id = (SELECT user_id FROM employee_profiles WHERE id = la.employee_id)
-        LEFT JOIN employee_profiles ep ON ep.user_id = u.id
-        LEFT JOIN departments d ON d.id = ep.department_id
-        JOIN leave_types lt ON lt.id = la.leave_type_id
-        ORDER BY la.created_at DESC
-      `;
-      const result = await pool.query(query);
+      const result = await pool.query(leaveReportQuery);
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Leave Report");
@@ -241,25 +252,7 @@ router.get(
   roleMiddleware("admin"),
   async (req, res, next) => {
     try {
-      const query = `
-        SELECT 
-          a.id,
-          a.asset_code,
-          a.asset_name,
-          a.asset_type,
-          a.purchase_date,
-          a.purchase_cost,
-          a.status,
-          u.name as allocated_to,
-          aa.allocated_date,
-          aa.return_date
-        FROM assets a
-        LEFT JOIN asset_allocations aa ON a.id = aa.asset_id AND aa.status = 'allocated'
-        LEFT JOIN employee_profiles ep ON aa.employee_id = ep.id
-        LEFT JOIN users u ON ep.user_id = u.id
-        ORDER BY a.created_at DESC
-      `;
-      const result = await pool.query(query);
+      const result = await pool.query(assetReportQuery);
       res.json({
         success: true,
         message: "Asset report retrieved",
@@ -282,25 +275,7 @@ router.get(
   roleMiddleware("admin"),
   async (req, res, next) => {
     try {
-      const query = `
-        SELECT 
-          a.id,
-          a.asset_code,
-          a.asset_name,
-          a.asset_type,
-          a.purchase_date,
-          a.purchase_cost,
-          a.status,
-          u.name as allocated_to,
-          aa.allocated_date,
-          aa.return_date
-        FROM assets a
-        LEFT JOIN asset_allocations aa ON a.id = aa.asset_id AND aa.status = 'allocated'
-        LEFT JOIN employee_profiles ep ON aa.employee_id = ep.id
-        LEFT JOIN users u ON ep.user_id = u.id
-        ORDER BY a.created_at DESC
-      `;
-      const result = await pool.query(query);
+      const result = await pool.query(assetReportQuery);
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Asset Report");

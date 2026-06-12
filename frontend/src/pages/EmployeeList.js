@@ -269,6 +269,7 @@ function EmployeeList() {
                 <table className="table table-hover align-middle">
                   <thead className="table-light">
                     <tr>
+                      <th>#</th>
                       <th>ID</th>
                       <th>Employee</th>
                       <th>Email</th>
@@ -284,13 +285,16 @@ function EmployeeList() {
                   <tbody>
                     {currentEmployees.length === 0 ? (
                       <tr>
-                        <td colSpan="9" className="text-center text-muted py-5">
+                        <td colSpan="10" className="text-center text-muted py-5">
                           No employees found
                         </td>
                       </tr>
                     ) : (
-                      currentEmployees.map((emp) => (
+                      currentEmployees.map((emp, index) => (
                         <tr key={emp.id}>
+                          <td className="text-muted">
+                            {indexOfFirstEmployee + index + 1}
+                          </td>
                           <td>{emp.id}</td>
 
                           <td>

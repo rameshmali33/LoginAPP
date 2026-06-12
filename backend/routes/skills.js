@@ -75,4 +75,100 @@ router.post("/",authMiddleware, roleMiddleware("admin"), async (req, res) => {
   }
 });
 
+// PUT Skill
+router.put("/:id", authMiddleware, roleMiddleware("admin"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { skill_name } = req.body;
+    const trimmedName = skill_name?.trim();
+
+    if (!trimmedName) {
+      return res.status(400).json({
+        message: "Skill name is required",
+      });
+    }
+
+    const existingSkill = await pool.query(
+      `
+      SELECT *
+      FROM skills
+      WHERE LOWER(skill_name) = LOWER($1)
+        AND id <> $2
+      `,
+      [trimmedName, id]
+    );
+
+    if (existingSkill.rows.length > 0) {
+      return res.status(400).json({
+        message: "Skill already exists",
+      });
+    }
+
+    const updatedSkill = await pool.query(
+      `
+      UPDATE skills
+      SET skill_name = $1
+      WHERE id = $2
+      RETURNING *
+      `,
+      [trimmedName, id]
+    );
+
+    if (updatedSkill.rows.length === 0) {
+      return res.status(404).json({
+        message: "Skill not found",
+      });
+    }
+
+    res.json({
+      message: "Skill updated successfully",
+      skill: updatedSkill.rows[0],
+    });
+  } catch (error) {
+    console.error("Update Skill Error:", error);
+    res.status(500).json({
+      message: "Server Error",
+    });
+  }
+});
+
+// DELETE Skill
+router.delete("/:id", authMiddleware, roleMiddleware("admin"), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const assignmentCount = await pool.query(
+      "SELECT COUNT(*)::int AS count FROM employee_skills WHERE skill_id = $1",
+      [id]
+    );
+
+    if (assignmentCount.rows[0].count > 0) {
+      return res.status(400).json({
+        message: "Cannot delete skill because it is assigned to employees",
+      });
+    }
+
+    const deletedSkill = await pool.query(
+      "DELETE FROM skills WHERE id = $1 RETURNING *",
+      [id]
+    );
+
+    if (deletedSkill.rows.length === 0) {
+      return res.status(404).json({
+        message: "Skill not found",
+      });
+    }
+
+    res.json({
+      message: "Skill deleted successfully",
+      skill: deletedSkill.rows[0],
+    });
+  } catch (error) {
+    console.error("Delete Skill Error:", error);
+    res.status(500).json({
+      message: "Server Error",
+    });
+  }
+});
+
 module.exports = router;

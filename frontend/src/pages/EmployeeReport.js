@@ -25,6 +25,12 @@ function EmployeeReport() {
 
   const [loading, setLoading] = useState(true);
 
+  const getReportRows = (payload) => {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.data)) return payload.data;
+    return [];
+  };
+
   // Fetch data based on active tab
   useEffect(() => {
     setLoading(true);
@@ -62,7 +68,7 @@ function EmployeeReport() {
   const fetchLeaves = async () => {
     try {
       const res = await API.get("/reports/leaves");
-      setLeaves(res.data || []);
+      setLeaves(getReportRows(res.data));
     } catch (error) {
       console.error(error);
       Swal.fire("Error", "Failed to load leaves report", "error");
@@ -74,7 +80,7 @@ function EmployeeReport() {
   const fetchAssets = async () => {
     try {
       const res = await API.get("/reports/assets");
-      setAssets(res.data || []);
+      setAssets(getReportRows(res.data));
     } catch (error) {
       console.error(error);
       Swal.fire("Error", "Failed to load assets report", "error");
@@ -305,9 +311,9 @@ function EmployeeReport() {
       Type: asset.asset_type || "N/A",
       "Purchase Cost": asset.purchase_cost ? `₹${Number(asset.purchase_cost).toLocaleString()}` : "N/A",
       Status: asset.status || "N/A",
-      "Allocated To": asset.allocated_to_name || asset.employee_name || "N/A",
+      "Allocated To": asset.allocated_to || asset.allocated_to_name || asset.employee_name || "N/A",
       "Allocated Date": asset.allocated_date ? new Date(asset.allocated_date).toLocaleDateString() : "N/A",
-      "Return Date": asset.returned_date ? new Date(asset.returned_date).toLocaleDateString() : "N/A",
+      "Return Date": asset.return_date || asset.returned_date ? new Date(asset.return_date || asset.returned_date).toLocaleDateString() : "N/A",
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -341,9 +347,9 @@ function EmployeeReport() {
       Type: asset.asset_type || "N/A",
       "Purchase Cost": asset.purchase_cost ? `₹${Number(asset.purchase_cost).toLocaleString()}` : "N/A",
       Status: asset.status || "N/A",
-      "Allocated To": asset.allocated_to_name || asset.employee_name || "N/A",
+      "Allocated To": asset.allocated_to || asset.allocated_to_name || asset.employee_name || "N/A",
       "Allocated Date": asset.allocated_date ? new Date(asset.allocated_date).toLocaleDateString() : "N/A",
-      "Return Date": asset.returned_date ? new Date(asset.returned_date).toLocaleDateString() : "N/A",
+      "Return Date": asset.return_date || asset.returned_date ? new Date(asset.return_date || asset.returned_date).toLocaleDateString() : "N/A",
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -901,7 +907,8 @@ function EmployeeReport() {
                               </span>
                             </td>
                             <td>
-                              {asset.allocated_to_name ||
+                              {asset.allocated_to ||
+                                asset.allocated_to_name ||
                                 asset.employee_name ||
                                 "Unallocated"}
                             </td>
@@ -914,8 +921,8 @@ function EmployeeReport() {
                             </td>
                             <td>
                               <small>
-                                {asset.returned_date
-                                  ? new Date(asset.returned_date).toLocaleDateString()
+                                {asset.return_date || asset.returned_date
+                                  ? new Date(asset.return_date || asset.returned_date).toLocaleDateString()
                                   : "N/A"}
                               </small>
                             </td>
