@@ -7,11 +7,14 @@ function Signup() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
   const handleChange = (e) => {
@@ -21,8 +24,24 @@ function Signup() {
     });
   };
 
+  const validateForm = () => {
+    if (form.password.length < 6) {
+      Swal.fire("Weak Password", "Password must be at least 6 characters", "warning");
+      return false;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      Swal.fire("Password Mismatch", "Password and confirm password do not match", "warning");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) return;
 
     try {
       setLoading(true);
@@ -46,9 +65,7 @@ function Signup() {
       Swal.fire({
         icon: "error",
         title: "Registration Failed",
-        text:
-          err.response?.data?.message ||
-          "Unable to create account",
+        text: err.response?.data?.message || "Unable to create account",
       });
     } finally {
       setLoading(false);
@@ -60,9 +77,7 @@ function Signup() {
       <div className="row vh-100 justify-content-center align-items-center">
         <div className="col-md-5">
           <div className="card shadow border-0 p-4">
-            <h2 className="text-center fw-bold mb-2">
-              Create Account
-            </h2>
+            <h2 className="text-center fw-bold mb-2">Create Account</h2>
 
             <p className="text-center text-muted mb-4">
               Register to access the Employee Management System
@@ -70,9 +85,7 @@ function Signup() {
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label className="form-label fw-semibold">
-                  Full Name
-                </label>
+                <label className="form-label fw-semibold">Full Name</label>
 
                 <input
                   type="text"
@@ -86,9 +99,7 @@ function Signup() {
               </div>
 
               <div className="mb-3">
-                <label className="form-label fw-semibold">
-                  Email
-                </label>
+                <label className="form-label fw-semibold">Email</label>
 
                 <input
                   type="email"
@@ -101,20 +112,56 @@ function Signup() {
                 />
               </div>
 
+              <div className="mb-3">
+                <label className="form-label fw-semibold">Password</label>
+
+                <div className="input-group input-group-lg">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="Enter your password"
+                    className="form-control"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                  />
+
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? "🙈" : "👁️"}
+                  </button>
+                </div>
+              </div>
+
               <div className="mb-4">
                 <label className="form-label fw-semibold">
-                  Password
+                  Confirm Password
                 </label>
 
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Enter your password"
-                  className="form-control form-control-lg"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                />
+                <div className="input-group input-group-lg">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    placeholder="Confirm your password"
+                    className="form-control"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    required
+                  />
+
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
+                  >
+                    {showConfirmPassword ? "🙈" : "👁️"}
+                  </button>
+                </div>
               </div>
 
               <button
@@ -127,8 +174,7 @@ function Signup() {
             </form>
 
             <div className="mt-3 text-center">
-              Already have an account?{" "}
-              <Link to="/login">Login</Link>
+              Already have an account? <Link to="/login">Login</Link>
             </div>
           </div>
         </div>
