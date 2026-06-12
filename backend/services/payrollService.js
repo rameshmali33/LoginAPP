@@ -1,4 +1,5 @@
 const payrollRepository = require("../repositories/payrollRepository");
+const notificationService = require("./notificationService");
 
 class PayrollService {
   async createPeriod(data, userId) {
@@ -30,6 +31,14 @@ class PayrollService {
     }
 
     await payrollRepository.markPeriodProcessed(periodId, userId);
+    await notificationService.notifyRoles(
+      ["hr", "admin"],
+      "Payroll Generated",
+      `${period.period_name} payroll generated for ${records.length} employee(s).`,
+      "payroll_period",
+      periodId
+    );
+
     return records;
   }
 
@@ -74,7 +83,11 @@ class PayrollService {
     }
 
     const recalculated = this.recalculateEditedRecord({ ...existing, ...data });
-    return await payrollRepository.updateRecord(id, recalculated);
+    const updated = await payrollRepository.updateRecord(id, recalculated);
+
+    await this.notifyPayrollStatusChange(existing, updated);
+
+    return updated;
   }
 
   async updatePeriodStatus(id, status) {
@@ -84,6 +97,14 @@ class PayrollService {
       error.statusCode = 404;
       throw error;
     }
+    await notificationService.notifyRoles(
+      ["hr", "admin"],
+      "Payroll Period Updated",
+      `${period.period_name} status changed to ${status}.`,
+      "payroll_period",
+      id
+    );
+
     return period;
   }
 
@@ -198,6 +219,36 @@ class PayrollService {
 
   money(value) {
     return Math.round(Number(value || 0) * 100) / 100;
+  }
+
+  async notifyPayrollStatusChange(previous, updated) {
+    if (!updated || previous.status === updated.status) return;
+
+    const statusMessages = {
+      approved: {
+        title: "Payslip Approved",
+        message: `Your payslip for ${updated.period_name} has been approved. Net pay: INR ${Number(updated.net_pay || 0).toFixed(2)}.`,
+      },
+      paid: {
+        title: "Salary Paid",
+        message: `Your salary for ${updated.period_name} has been marked as paid. Net pay: INR ${Number(updated.net_pay || 0).toFixed(2)}.`,
+      },
+      hold: {
+        title: "Payroll On Hold",
+        message: `Your payroll for ${updated.period_name} has been put on hold. Please contact HR for details.`,
+      },
+    };
+
+    const notification = statusMessages[updated.status];
+    if (!notification) return;
+
+    await notificationService.safeNotifyEmployeeByProfileId(
+      updated.employee_id,
+      notification.title,
+      notification.message,
+      "payroll",
+      updated.id
+    );
   }
 }
 

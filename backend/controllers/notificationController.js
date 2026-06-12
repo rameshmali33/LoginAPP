@@ -61,7 +61,7 @@ class NotificationController {
   markAsRead = async (req, res, next) => {
     try {
       const { id } = req.params;
-      const notification = await notificationService.markAsRead(parseInt(id, 10));
+      const notification = await notificationService.markAsRead(parseInt(id, 10), req.user.id);
 
       res.json({
         success: true,

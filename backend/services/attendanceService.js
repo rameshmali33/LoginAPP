@@ -1,4 +1,5 @@
 const attendanceRepository = require("../repositories/attendanceRepository");
+const notificationService = require("./notificationService");
 
 class AttendanceService {
   getEmployeeIdFromUser(user) {
@@ -58,7 +59,17 @@ class AttendanceService {
 
   async upsertManualRecord(data, markedBy) {
     const calculated = this.calculateManualWork(data);
-    return await attendanceRepository.upsertManualRecord(calculated, markedBy);
+    const record = await attendanceRepository.upsertManualRecord(calculated, markedBy);
+
+    await notificationService.safeNotifyEmployeeByProfileId(
+      record.employee_id,
+      "Attendance Updated",
+      `Your attendance for ${new Date(record.attendance_date).toLocaleDateString("en-IN")} was updated as ${record.status}.`,
+      "attendance",
+      record.id
+    );
+
+    return record;
   }
 
   async getSummary(filters) {

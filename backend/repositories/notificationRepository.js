@@ -76,6 +76,65 @@ class NotificationRepository {
     return result.rows[0] || null;
   }
 
+  async getUserIdForEmployee(employeeId) {
+    const userEmployeeProfileColumn = await pool.query(
+      `
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_name = 'users' AND column_name = 'employee_profile_id'
+      LIMIT 1
+      `
+    );
+
+    if (userEmployeeProfileColumn?.rows?.length > 0) {
+      const result = await pool.query(
+        "SELECT id FROM users WHERE employee_profile_id = $1 LIMIT 1",
+        [employeeId]
+      );
+      if (result.rows[0]) return result.rows[0].id;
+    }
+
+    const employeeUserColumn = await pool.query(
+      `
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_name = 'employee_profiles' AND column_name = 'user_id'
+      LIMIT 1
+      `
+    );
+
+    if (employeeUserColumn?.rows?.length > 0) {
+      const result = await pool.query(
+        "SELECT user_id AS id FROM employee_profiles WHERE id = $1 LIMIT 1",
+        [employeeId]
+      );
+      if (result.rows[0]) return result.rows[0].id;
+    }
+
+    return null;
+  }
+
+  async getUserIdsByRoles(roles) {
+    if (!roles || roles.length === 0) return [];
+
+    const roleColumn = await pool.query(
+      `
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_name = 'users' AND column_name = 'role'
+      LIMIT 1
+      `
+    );
+
+    if (!roleColumn?.rows || roleColumn.rows.length === 0) return [];
+
+    const result = await pool.query(
+      "SELECT id FROM users WHERE role = ANY($1::text[])",
+      [roles]
+    );
+    return (result?.rows || []).map((row) => row.id);
+  }
+
   /**
    * Delete notification
    */

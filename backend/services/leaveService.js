@@ -1,5 +1,6 @@
 const leaveRepository = require("../repositories/leaveRepository");
 const pool = require("../config/db");
+const notificationService = require("./notificationService");
 
 class LeaveService {
   async getLeaveTypes() {
@@ -32,7 +33,7 @@ class LeaveService {
       throw new Error(`Insufficient leave balance. Required: ${totalDays}, Available: ${available}`);
     }
 
-    return await leaveRepository.createLeaveApplication(
+    const leave = await leaveRepository.createLeaveApplication(
       employeeId,
       leaveTypeId,
       fromDate,
@@ -40,6 +41,16 @@ class LeaveService {
       totalDays,
       reason
     );
+
+    await notificationService.notifyRoles(
+      ["manager", "admin"],
+      "New Leave Request",
+      `A leave request for ${totalDays} day(s) is waiting for manager review.`,
+      "leave",
+      leave.id
+    );
+
+    return leave;
   }
 
   async getLeaveHistory(employeeId) {
@@ -80,6 +91,26 @@ class LeaveService {
       await leaveRepository.createApprovalHistory(client, leaveId, managerUserId, action, remarks);
 
       await client.query("COMMIT");
+      await notificationService.safeNotifyEmployeeByProfileId(
+        application.employee_id,
+        nextStatus === "pending_hr" ? "Leave Approved by Manager" : "Leave Rejected by Manager",
+        nextStatus === "pending_hr"
+          ? "Your leave request has been approved by manager and sent to HR."
+          : `Your leave request was rejected by manager.${remarks ? ` Remarks: ${remarks}` : ""}`,
+        "leave",
+        leaveId
+      );
+
+      if (nextStatus === "pending_hr") {
+        await notificationService.notifyRoles(
+          ["hr", "admin"],
+          "Leave Pending HR Approval",
+          `${application.employee_name}'s leave request is waiting for HR approval.`,
+          "leave",
+          leaveId
+        );
+      }
+
       return updatedApp;
     } catch (error) {
       await client.query("ROLLBACK");
@@ -138,6 +169,15 @@ class LeaveService {
       }
 
       await client.query("COMMIT");
+      await notificationService.safeNotifyEmployeeByProfileId(
+        application.employee_id,
+        status === "approved" ? "Leave Approved" : "Leave Rejected by HR",
+        status === "approved"
+          ? `Your leave request for ${application.total_days} day(s) has been finally approved.`
+          : `Your leave request was rejected by HR.${remarks ? ` Remarks: ${remarks}` : ""}`,
+        "leave",
+        leaveId
+      );
       return updatedApp;
     } catch (error) {
       await client.query("ROLLBACK");

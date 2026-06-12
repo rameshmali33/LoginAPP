@@ -6,6 +6,7 @@
 const employeeRepository = require("../repositories/employeeRepository");
 const sendEmail = require("../config/mailer");
 const logger = require("../utils/logger");
+const notificationService = require("./notificationService");
 
 class EmployeeService {
   async createEmployee(data, userId) {
@@ -35,6 +36,14 @@ class EmployeeService {
       "Employee Created",
       `${employee.name} employee profile was created`,
       userId
+    );
+
+    await notificationService.notifyRoles(
+      ["admin", "hr"],
+      "Employee Profile Created",
+      `${employee.name} has been added to employee profiles.`,
+      "employee",
+      employee.id
     );
 
     return employee;
@@ -83,6 +92,14 @@ class EmployeeService {
       userId
     );
 
+    await notificationService.safeNotifyEmployeeByProfileId(
+      id,
+      "Profile Updated",
+      "Your employee profile details were updated.",
+      "employee",
+      id
+    );
+
     return updated;
   }
 
@@ -100,6 +117,14 @@ class EmployeeService {
       "Employee Status Changed",
       `${updated.name} status changed to ${status}`,
       userId
+    );
+
+    await notificationService.safeNotifyEmployeeByProfileId(
+      id,
+      "Employment Status Updated",
+      `Your employee profile status was changed to ${status}.`,
+      "employee",
+      id
     );
 
     return updated;

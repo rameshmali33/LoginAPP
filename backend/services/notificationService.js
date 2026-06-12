@@ -12,6 +12,8 @@ class NotificationService {
    * Called from asset/leave services when events occur
    */
   async notifyUser(userId, title, message, relatedEntity = null, relatedId = null) {
+    if (!userId) return null;
+
     try {
       const notification = await notificationRepository.createNotification(
         userId,
@@ -24,7 +26,7 @@ class NotificationService {
       return notification;
     } catch (error) {
       logger.error(`Failed to create notification for user ${userId}:`, error);
-      throw error;
+      return null;
     }
   }
 
@@ -78,10 +80,16 @@ class NotificationService {
   /**
    * Mark notification as read
    */
-  async markAsRead(notificationId) {
+  async markAsRead(notificationId, userId) {
     const notification = await notificationRepository.getNotificationById(notificationId);
     if (!notification) {
       throw new Error("Notification not found");
+    }
+
+    if (notification.user_id !== userId) {
+      const error = new Error("You do not have access to this notification");
+      error.statusCode = 403;
+      throw error;
     }
 
     return await notificationRepository.markAsRead(notificationId);
@@ -99,14 +107,37 @@ class NotificationService {
    * Called after important events (asset damaged, leave rejected, etc.)
    */
   async broadcastToAdmins(title, message, relatedEntity = null, relatedId = null) {
-    // Query admin users from DB
-    // Note: This assumes a role field in users table
-    // Adjust based on your actual schema
-    const query = `SELECT id FROM users WHERE role = 'admin'`;
-    const { rows } = await require("../config/db").query(query);
-    const adminIds = rows.map((row) => row.id);
-
+    const adminIds = await notificationRepository.getUserIdsByRoles(["admin"]);
     return await this.notifyUsers(adminIds, title, message, relatedEntity, relatedId);
+  }
+
+  async notifyRoles(roles, title, message, relatedEntity = null, relatedId = null) {
+    try {
+      const userIds = await notificationRepository.getUserIdsByRoles(roles);
+      return await this.notifyUsers(userIds, title, message, relatedEntity, relatedId);
+    } catch (error) {
+      logger.error(`Failed to notify roles ${roles.join(",")}:`, error);
+      return [];
+    }
+  }
+
+  async safeNotifyEmployeeByProfileId(employeeId, title, message, relatedEntity = null, relatedId = null) {
+    try {
+      return await this.notifyEmployeeByProfileId(employeeId, title, message, relatedEntity, relatedId);
+    } catch (error) {
+      logger.error(`Failed to notify employee profile ${employeeId}:`, error);
+      return null;
+    }
+  }
+
+  async notifyEmployeeByProfileId(employeeId, title, message, relatedEntity = null, relatedId = null) {
+    const userId = await notificationRepository.getUserIdForEmployee(employeeId);
+    if (!userId) {
+      logger.warn(`No linked user found for employee profile ${employeeId}`);
+      return null;
+    }
+
+    return await this.notifyUser(userId, title, message, relatedEntity, relatedId);
   }
 }
 

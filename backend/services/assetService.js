@@ -6,6 +6,7 @@
 const assetRepository = require("../repositories/assetRepository");
 const pool = require("../config/db");
 const logger = require("../utils/logger");
+const notificationService = require("./notificationService");
 
 class AssetService {
   /**
@@ -97,6 +98,17 @@ class AssetService {
     );
 
     logger.info(`Asset updated: ${id}`);
+
+    if (updates.status && updates.status !== existing.status) {
+      await notificationService.notifyRoles(
+        ["admin", "hr", "manager"],
+        "Asset Status Updated",
+        `${asset.asset_name} status changed from ${existing.status} to ${updates.status}.`,
+        "asset",
+        asset.id
+      );
+    }
+
     return asset;
   }
 
@@ -166,6 +178,13 @@ class AssetService {
       await client.query("COMMIT");
 
       logger.info(`Asset ${assetId} allocated to employee ${employeeId}`);
+      await notificationService.safeNotifyEmployeeByProfileId(
+        employeeId,
+        "Asset Allocated",
+        `${asset.asset_name} has been allocated to you on ${allocatedDate}.`,
+        "asset",
+        assetId
+      );
       return allocation;
     } catch (error) {
       await client.query("ROLLBACK");
@@ -220,6 +239,13 @@ class AssetService {
       await client.query("COMMIT");
 
       logger.info(`Asset ${allocation.asset_id} returned from employee ${allocation.employee_id}`);
+      await notificationService.safeNotifyEmployeeByProfileId(
+        allocation.employee_id,
+        "Asset Returned",
+        `Your allocated asset has been marked as returned on ${returnDate}.`,
+        "asset",
+        allocation.asset_id
+      );
       return returned;
     } catch (error) {
       await client.query("ROLLBACK");
