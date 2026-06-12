@@ -15,6 +15,7 @@ import {
   FaUserCircle,
   FaCalendarCheck,
   FaUserClock,
+  FaMoneyCheckAlt,
   FaBox,
   FaHistory,
   FaBell,
@@ -93,6 +94,12 @@ function Layout({ children, title }) {
           {role && (
             <NavLink to="/attendance">
               <FaUserClock /> Attendance
+            </NavLink>
+          )}
+
+          {role && (
+            <NavLink to="/payroll">
+              <FaMoneyCheckAlt /> Payroll
             </NavLink>
           )}
 

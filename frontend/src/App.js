@@ -20,6 +20,7 @@ import ProfileLinkRequest from "./pages/ProfileLinkRequest";
 import ProfileLinkRequestsAdmin from "./pages/ProfileLinkRequestsAdmin";
 import LeaveManagement from "./pages/LeaveManagement";
 import AttendanceManagement from "./pages/AttendanceManagement";
+import PayrollManagement from "./pages/PayrollManagement";
 import AssetManagement from "./pages/AssetManagement";
 import Notifications from "./pages/Notifications";
 import AuditLogs from "./pages/AuditLogs";
@@ -50,6 +51,7 @@ function App() {
         <Route path="/profile-link-requests" element={<ProtectedRoute><ProfileLinkRequestsAdmin /></ProtectedRoute>} />
         <Route path="/leaves" element={<ProtectedRoute><LeaveManagement /></ProtectedRoute>} />
         <Route path="/attendance" element={<ProtectedRoute><AttendanceManagement /></ProtectedRoute>} />
+        <Route path="/payroll" element={<ProtectedRoute><PayrollManagement /></ProtectedRoute>} />
         <Route path="/assets" element={<ProtectedRoute><AssetManagement /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         <Route path="/audit-logs" element={<ProtectedRoute><AuditLogs /></ProtectedRoute>} />

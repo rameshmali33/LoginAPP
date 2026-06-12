@@ -24,6 +24,13 @@ async function run() {
     await pool.query(attendanceSql);
     logger.info("Attendance migrations completed successfully!");
 
+    // Run payroll tables migration
+    const payrollSqlPath = path.join(__dirname, 'migrations', 'create_payroll_tables.sql');
+    const payrollSql = fs.readFileSync(payrollSqlPath, 'utf8');
+    logger.info("Running payroll database migrations...");
+    await pool.query(payrollSql);
+    logger.info("Payroll migrations completed successfully!");
+
     // Run Document 5 tables migration
     const doc5SqlPath = path.join(__dirname, 'migrations', 'create_document5_tables.sql');
     const doc5Sql = fs.readFileSync(doc5SqlPath, 'utf8');
