@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import API from "../services/api";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Login() {
   const [form, setForm] = useState({
@@ -98,7 +99,7 @@ function Login() {
                     className="btn btn-outline-secondary"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? "🙈" : "👁️"}
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
               </div>

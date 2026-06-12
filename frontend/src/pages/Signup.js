@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import API from "../services/api";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Signup() {
   const navigate = useNavigate();
@@ -131,7 +132,7 @@ function Signup() {
                     className="btn btn-outline-secondary"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? "🙈" : "👁️"}
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
               </div>
@@ -159,7 +160,7 @@ function Signup() {
                       setShowConfirmPassword(!showConfirmPassword)
                     }
                   >
-                    {showConfirmPassword ? "🙈" : "👁️"}
+                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
               </div>
