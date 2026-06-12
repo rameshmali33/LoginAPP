@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -11,18 +11,25 @@ import {
   LinearScale,
   BarElement,
 } from "chart.js";
-import { Pie, Bar } from "react-chartjs-2";
+import { Bar, Doughnut } from "react-chartjs-2";
+import {
+  FaBriefcase,
+  FaBuilding,
+  FaChartLine,
+  FaCheckCircle,
+  FaFileAlt,
+  FaMoneyBillWave,
+  FaPlus,
+  FaTools,
+  FaUserClock,
+  FaUserPlus,
+  FaUsers,
+} from "react-icons/fa";
 import API from "../services/api";
 import Layout from "../components/Layout";
+import "./Dashboard.css";
 
-ChartJS.register(
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  BarElement
-);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -36,25 +43,24 @@ function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-
       const statsRes = await API.get("/dashboard/stats");
       setStats(statsRes.data);
 
       if (statsRes.data.dashboardType === "admin") {
         const empRes = await API.get("/employees");
-        setEmployees(empRes.data);
+        setEmployees(empRes.data?.data ?? empRes.data ?? []);
       }
     } catch (error) {
       console.error("Dashboard Error:", error);
-
       if (error.response?.data) {
         setStats(error.response.data);
-      }else {
+      } else {
         Swal.fire("Error", "Error loading dashboard data", "error");
       }
     } finally {
@@ -62,77 +68,87 @@ function Dashboard() {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return `₹${Number(amount || 0).toLocaleString()}`;
-  };
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
+  const formatCurrency = (amount) =>
+    Number(amount || 0).toLocaleString("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
     });
-  };
 
-  const departmentCounts = employees.reduce((acc, emp) => {
-    const dept = emp.department_name || "N/A";
-    acc[dept] = (acc[dept] || 0) + 1;
-    return acc;
-  }, {});
+  const formatDate = (date) =>
+    date
+      ? new Date(date).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "-";
 
-  const departmentChartData = {
-    labels: Object.keys(departmentCounts),
-    datasets: [
-      {
-        label: "Employees",
-        data: Object.values(departmentCounts),
-        backgroundColor: [
-          "#3B82F6",
-          "#10B981",
-          "#F59E0B",
-          "#EF4444",
-          "#8B5CF6",
-          "#06B6D4",
-          "#EC4899",
-          "#84CC16",
-        ],
-        borderWidth: 2,
-        borderColor: "#fff",
-      },
-    ],
-  };
+  const adminAnalytics = useMemo(() => {
+    const departmentCounts = employees.reduce((acc, emp) => {
+      const dept = emp.department_name || "Unassigned";
+      acc[dept] = (acc[dept] || 0) + 1;
+      return acc;
+    }, {});
 
-  const salaryChartData = {
-    labels: employees.map((emp) => emp.name),
-    datasets: [
-      {
-        label: "Salary",
-        data: employees.map((emp) => Number(emp.salary || 0)),
-        backgroundColor: "#2563EB",
-        borderRadius: 8,
-      },
-    ],
-  };
+    const salaryBands = {
+      "0-25k": 0,
+      "25k-50k": 0,
+      "50k-75k": 0,
+      "75k-100k": 0,
+      "100k+": 0,
+    };
 
-  const chartOptions = {
+    employees.forEach((emp) => {
+      const salary = Number(emp.salary || 0);
+      if (salary < 25000) salaryBands["0-25k"] += 1;
+      else if (salary < 50000) salaryBands["25k-50k"] += 1;
+      else if (salary < 75000) salaryBands["50k-75k"] += 1;
+      else if (salary < 100000) salaryBands["75k-100k"] += 1;
+      else salaryBands["100k+"] += 1;
+    });
+
+    const statusCounts = {
+      Active: Number(stats?.activeEmployees || 0),
+      Inactive: Number(stats?.inactiveEmployees || 0),
+    };
+
+    const topPaidEmployees = [...employees]
+      .sort((a, b) => Number(b.salary || 0) - Number(a.salary || 0))
+      .slice(0, 8);
+
+    return { departmentCounts, salaryBands, statusCounts, topPaidEmployees };
+  }, [employees, stats]);
+
+  const chartPalette = ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#7c3aed", "#0891b2", "#db2777"];
+
+  const baseChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: "bottom",
+        labels: {
+          boxWidth: 10,
+          usePointStyle: true,
+        },
       },
     },
   };
 
-  const salaryChartOptions = {
+  const axisChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
     },
     scales: {
+      x: {
+        grid: { display: false },
+      },
       y: {
         beginAtZero: true,
+        grid: { color: "#eef2f7" },
       },
     },
   };
@@ -140,9 +156,9 @@ function Dashboard() {
   if (loading) {
     return (
       <Layout title="Dashboard">
-        <div className="text-center py-5">
+        <div className="dashboard-loading">
           <div className="spinner-border text-primary"></div>
-          <p className="text-muted mt-3">Loading dashboard...</p>
+          <p>Loading dashboard...</p>
         </div>
       </Layout>
     );
@@ -151,11 +167,9 @@ function Dashboard() {
   if (!stats) {
     return (
       <Layout title="Dashboard">
-        <div className="card border-0 shadow-sm">
-          <div className="card-body p-5 text-center">
-            <h3 className="fw-bold">No Dashboard Data</h3>
-            <p className="text-muted mb-0">Please try refreshing the page.</p>
-          </div>
+        <div className="empty-state-panel">
+          <h3>No Dashboard Data</h3>
+          <p>Please try refreshing the page.</p>
         </div>
       </Layout>
     );
@@ -163,492 +177,334 @@ function Dashboard() {
 
   return (
     <Layout title="Dashboard">
-      <div className="mb-4">
-        <h2 className="fw-bold">Welcome, {user.name} 👋</h2>
-        <p className="text-muted">
-          {stats.dashboardType === "admin"
-            ? "Here is the complete overview of your Employee Profile Management System."
-            : stats.dashboardType === "unlinked_employee"
-            ? "Your account is active, but your employee profile is not linked yet."
-            : "Here is your personal employee dashboard."}
-        </p>
-      </div>
-
-      {stats.dashboardType === "unlinked_employee" ? (
-        <div className="card border-0 shadow-sm">
-          <div className="card-body p-5 text-center">
-            <div className="display-1 mb-3">🔗</div>
-            <h3 className="fw-bold">Profile Not Linked</h3>
-            <p className="text-muted mb-0">{stats.message}</p>
-            <p className="text-muted mt-2">
-              Please send a request to admin to link your user account with an
-              employee profile.
+      <div className="dashboard-shell">
+        <div className="dashboard-header">
+          <div>
+            <p className="dashboard-eyebrow">Overview</p>
+            <h2>Welcome, {user.name || "User"}</h2>
+            <p>
+              {stats.dashboardType === "admin"
+                ? "Monitor workforce, payroll signals, profile coverage, and operational activity from one place."
+                : stats.dashboardType === "unlinked_employee"
+                ? "Your account is active, but your employee profile is not linked yet."
+                : "Track your profile, skills, uploaded records, and employment details."}
             </p>
+          </div>
 
-            <button
-              className="btn btn-primary mt-3"
-              onClick={() => navigate("/request-profile-link")}
-            >
+          {stats.dashboardType === "admin" && (
+            <div className="dashboard-header-actions">
+              <button className="btn btn-primary" onClick={() => navigate("/create-employee")}>
+                <FaUserPlus className="me-2" /> Add Employee
+              </button>
+              <button className="btn btn-outline-primary" onClick={() => navigate("/report")}>
+                <FaFileAlt className="me-2" /> Reports
+              </button>
+            </div>
+          )}
+        </div>
+
+        {stats.dashboardType === "unlinked_employee" ? (
+          <div className="empty-state-panel">
+            <FaUsers className="empty-state-icon" />
+            <h3>Profile Not Linked</h3>
+            <p>{stats.message}</p>
+            <button className="btn btn-primary mt-2" onClick={() => navigate("/request-profile-link")}>
               Request Profile Link
             </button>
           </div>
-        </div>
-      ) : stats.dashboardType === "employee" ? (
-        <>
-          <div className="row g-4 mb-5">
-            <div className="col-lg-4 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">👤</div>
-                <p className="text-muted mb-1">My Name</p>
-                <h4>{stats.profile?.name}</h4>
+        ) : stats.dashboardType === "employee" ? (
+          <EmployeeDashboard
+            stats={stats}
+            formatCurrency={formatCurrency}
+            setSelectedImage={setSelectedImage}
+          />
+        ) : (
+          <>
+            <div className="metric-grid">
+              <MetricCard icon={<FaUsers />} label="Total Employees" value={stats.employees} tone="blue" />
+              <MetricCard icon={<FaCheckCircle />} label="Active Employees" value={stats.activeEmployees} tone="green" />
+              <MetricCard icon={<FaBuilding />} label="Departments" value={stats.departments} tone="amber" />
+              <MetricCard icon={<FaTools />} label="Skills Catalog" value={stats.skills} tone="violet" />
+              <MetricCard icon={<FaMoneyBillWave />} label="Average Salary" value={formatCurrency(stats.averageSalary)} tone="cyan" />
+              <MetricCard icon={<FaChartLine />} label="Highest Salary" value={formatCurrency(stats.highestSalary)} tone="rose" />
+              <MetricCard icon={<FaBriefcase />} label="With Skills" value={stats.employeesWithSkills} tone="slate" />
+              <MetricCard icon={<FaFileAlt />} label="Profile Images" value={stats.images} tone="indigo" />
+            </div>
+
+            <div className="row g-4">
+              <div className="col-xl-4">
+                <DashboardPanel title="Workforce Status">
+                  <div className="chart-box">
+                    <Doughnut
+                      data={{
+                        labels: Object.keys(adminAnalytics.statusCounts),
+                        datasets: [
+                          {
+                            data: Object.values(adminAnalytics.statusCounts),
+                            backgroundColor: ["#10b981", "#ef4444"],
+                            borderWidth: 0,
+                          },
+                        ],
+                      }}
+                      options={baseChartOptions}
+                    />
+                  </div>
+                </DashboardPanel>
+              </div>
+
+              <div className="col-xl-4">
+                <DashboardPanel title="Employees by Department">
+                  <div className="chart-box">
+                    <Doughnut
+                      data={{
+                        labels: Object.keys(adminAnalytics.departmentCounts),
+                        datasets: [
+                          {
+                            data: Object.values(adminAnalytics.departmentCounts),
+                            backgroundColor: chartPalette,
+                            borderWidth: 0,
+                          },
+                        ],
+                      }}
+                      options={baseChartOptions}
+                    />
+                  </div>
+                </DashboardPanel>
+              </div>
+
+              <div className="col-xl-4">
+                <DashboardPanel title="Salary Bands">
+                  <div className="chart-box">
+                    <Bar
+                      data={{
+                        labels: Object.keys(adminAnalytics.salaryBands),
+                        datasets: [
+                          {
+                            data: Object.values(adminAnalytics.salaryBands),
+                            backgroundColor: "#2563eb",
+                            borderRadius: 8,
+                          },
+                        ],
+                      }}
+                      options={axisChartOptions}
+                    />
+                  </div>
+                </DashboardPanel>
               </div>
             </div>
 
-            <div className="col-lg-4 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🏢</div>
-                <p className="text-muted mb-1">Department</p>
-                <h4>{stats.profile?.department_name || "N/A"}</h4>
+            <div className="row g-4 mt-1">
+              <div className="col-xl-7">
+                <DashboardPanel title="Top Compensation">
+                  <div className="chart-box chart-box-wide">
+                    <Bar
+                      data={{
+                        labels: adminAnalytics.topPaidEmployees.map((emp) => emp.name),
+                        datasets: [
+                          {
+                            label: "Salary",
+                            data: adminAnalytics.topPaidEmployees.map((emp) => Number(emp.salary || 0)),
+                            backgroundColor: "#10b981",
+                            borderRadius: 8,
+                          },
+                        ],
+                      }}
+                      options={axisChartOptions}
+                    />
+                  </div>
+                </DashboardPanel>
+              </div>
+
+              <div className="col-xl-5">
+                <DashboardPanel title="Quick Actions">
+                  <div className="quick-action-grid">
+                    <QuickAction icon={<FaPlus />} title="Create Employee" to="/create-employee" navigate={navigate} />
+                    <QuickAction icon={<FaUsers />} title="Employees" to="/employees" navigate={navigate} />
+                    <QuickAction icon={<FaUserClock />} title="Attendance" to="/attendance" navigate={navigate} />
+                    <QuickAction icon={<FaMoneyBillWave />} title="Payroll" to="/payroll" navigate={navigate} />
+                    <QuickAction icon={<FaBuilding />} title="Departments" to="/departments" navigate={navigate} />
+                    <QuickAction icon={<FaFileAlt />} title="Reports" to="/report" navigate={navigate} />
+                  </div>
+                </DashboardPanel>
               </div>
             </div>
 
-            <div className="col-lg-4 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">💼</div>
-                <p className="text-muted mb-1">Designation</p>
-                <h4>{stats.profile?.designation || "N/A"}</h4>
-              </div>
-            </div>
-
-            <div className="col-lg-4 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🛠️</div>
-                <p className="text-muted mb-1">My Skills</p>
-                <h4>{stats.skills?.length || 0}</h4>
-              </div>
-            </div>
-
-            <div className="col-lg-4 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🖼️</div>
-                <p className="text-muted mb-1">My Images</p>
-                <h4>{stats.imageCount || 0}</h4>
-              </div>
-            </div>
-
-            <div className="col-lg-4 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">📊</div>
-                <p className="text-muted mb-1">Profile Completion</p>
-                <h4>{stats.profileCompletion || 0}%</h4>
-              </div>
-            </div>
-          </div>
-
-          <div className="card border-0 shadow-sm mb-4">
-            <div className="card-body p-4">
-              <h5 className="fw-bold mb-3">Profile Completion</h5>
-
-              <div className="progress" style={{ height: "25px" }}>
-                <div
-                  className="progress-bar"
-                  style={{ width: `${stats.profileCompletion || 0}%` }}
-                >
-                  {stats.profileCompletion || 0}%
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card border-0 shadow-sm mb-4">
-            <div className="card-body p-4">
-              <h5 className="fw-bold mb-4">My Profile Details</h5>
-
-              <div className="row g-3">
-                <div className="col-md-6">
-                  <p className="text-muted mb-1">Email</p>
-                  <h6>{stats.profile?.email}</h6>
-                </div>
-
-                <div className="col-md-6">
-                  <p className="text-muted mb-1">Phone</p>
-                  <h6>{stats.profile?.phone || "N/A"}</h6>
-                </div>
-
-                <div className="col-md-6">
-                  <p className="text-muted mb-1">Salary</p>
-                  <h6>{formatCurrency(stats.profile?.salary)}</h6>
-                </div>
-
-                <div className="col-md-6">
-                  <p className="text-muted mb-1">Status</p>
-                  <span
-                    className={`badge ${
-                      stats.profile?.status === "inactive"
-                        ? "bg-danger"
-                        : "bg-success"
-                    }`}
-                  >
-                    {stats.profile?.status === "inactive"
-                      ? "Inactive"
-                      : "Active"}
-                  </span>
-                </div>
-
-                <div className="col-12">
-                  <p className="text-muted mb-1">Address</p>
-                  <h6>{stats.profile?.address || "N/A"}</h6>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card border-0 shadow-sm mb-4">
-            <div className="card-body p-4">
-              <h5 className="fw-bold mb-3">My Skills</h5>
-
-              {stats.skills?.length === 0 ? (
-                <p className="text-muted mb-0">No skills assigned</p>
-              ) : (
-                <div className="d-flex gap-2 flex-wrap">
-                  {stats.skills.map((skill, index) => (
-                    <span key={index} className="badge bg-success px-3 py-2">
-                      {skill.skill_name}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="card border-0 shadow-sm">
-            <div className="card-body p-4">
-              <h5 className="fw-bold mb-3">My Uploaded Images</h5>
-
-              {stats.images?.length === 0 ? (
-                <p className="text-muted mb-0">No images uploaded</p>
-              ) : (
-                <div className="row g-3">
-                  {stats.images.map((img) => (
-                    <div className="col-md-3 col-6" key={img.id}>
-                      <div
-                        className="border rounded shadow-sm overflow-hidden"
-                        style={{ cursor: "pointer", height: "140px" }}
-                        onClick={() => setSelectedImage(img.image_url || img.url)}
-                      >
-                        <img
-                          src={img.image_url || img.url}
-                          alt="Employee"
-                          className="img-fluid w-100 h-100"
-                          style={{ objectFit: "cover" }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="row g-4 mb-5">
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">👥</div>
-                <p className="text-muted mb-1">Total Employees</p>
-                <h2>{stats.employees}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">✅</div>
-                <p className="text-muted mb-1">Active Employees</p>
-                <h2>{stats.activeEmployees}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">⛔</div>
-                <p className="text-muted mb-1">Inactive Employees</p>
-                <h2>{stats.inactiveEmployees}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🏢</div>
-                <p className="text-muted mb-1">Departments</p>
-                <h2>{stats.departments}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🛠️</div>
-                <p className="text-muted mb-1">Skills</p>
-                <h2>{stats.skills}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🖼️</div>
-                <p className="text-muted mb-1">Images</p>
-                <h2>{stats.images}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">💰</div>
-                <p className="text-muted mb-1">Average Salary</p>
-                <h2>{formatCurrency(stats.averageSalary)}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🏆</div>
-                <p className="text-muted mb-1">Highest Salary</p>
-                <h2>{formatCurrency(stats.highestSalary)}</h2>
-              </div>
-            </div>
-          </div>
-
-          <h4 className="fw-bold mb-3">Analytics</h4>
-
-          <div className="row g-4 mb-5">
-            <div className="col-lg-5">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body p-4">
-                  <h5 className="fw-bold mb-3">Employees by Department</h5>
-
-                  {employees.length === 0 ? (
-                    <p className="text-muted">No employee data available.</p>
-                  ) : (
-                    <Pie data={departmentChartData} options={chartOptions} />
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="col-lg-7">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body p-4">
-                  <h5 className="fw-bold mb-3">Salary Distribution</h5>
-
-                  {employees.length === 0 ? (
-                    <p className="text-muted">No salary data available.</p>
-                  ) : (
-                    <Bar data={salaryChartData} options={salaryChartOptions} />
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="row g-4 mb-5">
-            <div className="col-lg-6">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body p-4">
-                  <h5 className="fw-bold mb-3">Recent Employees</h5>
-
-                  {stats.recentEmployees?.length === 0 ? (
-                    <p className="text-muted">No recent employees.</p>
-                  ) : (
-                    <div className="table-responsive">
-                      <table className="table align-middle">
-                        <thead>
-                          <tr>
-                            <th>Name</th>
-                            <th>Department</th>
-                            <th>Status</th>
-                            <th>Date</th>
+            <div className="row g-4 mt-1">
+              <div className="col-xl-6">
+                <DashboardPanel title="Recent Employees">
+                  <div className="table-responsive">
+                    <table className="table dashboard-table align-middle">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Department</th>
+                          <th>Status</th>
+                          <th>Joined</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stats.recentEmployees?.map((emp) => (
+                          <tr key={emp.id}>
+                            <td>
+                              <div className="fw-semibold">{emp.name}</div>
+                              <small className="text-muted">{emp.designation || "N/A"}</small>
+                            </td>
+                            <td>{emp.department_name || "N/A"}</td>
+                            <td>
+                              <span className={`badge ${emp.status === "inactive" ? "bg-danger" : "bg-success"}`}>
+                                {emp.status === "inactive" ? "Inactive" : "Active"}
+                              </span>
+                            </td>
+                            <td>{formatDate(emp.created_at)}</td>
                           </tr>
-                        </thead>
-
-                        <tbody>
-                          {stats.recentEmployees?.map((emp) => (
-                            <tr key={emp.id}>
-                              <td>
-                                <div className="fw-semibold">{emp.name}</div>
-                                <small className="text-muted">
-                                  {emp.designation || "N/A"}
-                                </small>
-                              </td>
-
-                              <td>{emp.department_name || "N/A"}</td>
-
-                              <td>
-                                <span
-                                  className={`badge ${
-                                    emp.status === "inactive"
-                                      ? "bg-danger"
-                                      : "bg-success"
-                                  }`}
-                                >
-                                  {emp.status === "inactive"
-                                    ? "Inactive"
-                                    : "Active"}
-                                </span>
-                              </td>
-
-                              <td>{formatDate(emp.created_at)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </DashboardPanel>
               </div>
-            </div>
 
-            <div className="col-lg-6">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body p-4">
-                  <h5 className="fw-bold mb-3">Recent Activity</h5>
-
-                  {stats.activityLogs?.length === 0 ? (
-                    <p className="text-muted">No activity logs yet.</p>
-                  ) : (
-                    <div className="list-group list-group-flush">
-                      {stats.activityLogs?.map((log) => (
-                        <div
-                          key={log.id}
-                          className="list-group-item px-0 border-0 border-bottom"
-                        >
-                          <div className="d-flex justify-content-between">
+              <div className="col-xl-6">
+                <DashboardPanel title="Recent Activity">
+                  <div className="activity-list">
+                    {stats.activityLogs?.length ? (
+                      stats.activityLogs.map((log) => (
+                        <div className="activity-item" key={log.id}>
+                          <div>
                             <strong>{log.action}</strong>
-                            <small className="text-muted">
-                              {formatDate(log.created_at)}
-                            </small>
+                            <p>{log.description}</p>
+                            <span>By {log.user_name || "System"}</span>
                           </div>
-
-                          <p className="text-muted mb-1">{log.description}</p>
-
-                          <small className="text-muted">
-                            By: {log.user_name || "System"}
-                          </small>
+                          <small>{formatDate(log.created_at)}</small>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                      ))
+                    ) : (
+                      <p className="text-muted mb-0">No activity logs yet.</p>
+                    )}
+                  </div>
+                </DashboardPanel>
               </div>
             </div>
-          </div>
+          </>
+        )}
+      </div>
 
-          <h4 className="fw-bold mb-3">Quick Actions</h4>
-
-          <div className="row g-4">
-            <div className="col-lg-4 col-md-6">
-              <div
-                className="action-card"
-                onClick={() => navigate("/departments")}
-              >
-                <div className="icon-box">🏢</div>
-                <h5>Departments</h5>
-                <p className="text-muted">
-                  Create, update and manage departments.
-                </p>
-                <button className="btn btn-primary w-100">Open</button>
-              </div>
-            </div>
-
-            <div className="col-lg-4 col-md-6">
-              <div className="action-card" onClick={() => navigate("/skills")}>
-                <div className="icon-box">🛠️</div>
-                <h5>Skills</h5>
-                <p className="text-muted">
-                  Manage technical and professional skills.
-                </p>
-                <button className="btn btn-success w-100">Open</button>
-              </div>
-            </div>
-
-            <div className="col-lg-4 col-md-6">
-              <div
-                className="action-card"
-                onClick={() => navigate("/create-employee")}
-              >
-                <div className="icon-box">👤</div>
-                <h5>Create Employee</h5>
-                <p className="text-muted">Add a new employee profile.</p>
-                <button className="btn btn-warning w-100">Open</button>
-              </div>
-            </div>
-
-            <div className="col-lg-4 col-md-6">
-              <div
-                className="action-card"
-                onClick={() => navigate("/employees")}
-              >
-                <div className="icon-box">📋</div>
-                <h5>Employee List</h5>
-                <p className="text-muted">
-                  View, edit and manage all employees.
-                </p>
-                <button className="btn btn-dark w-100">Open</button>
-              </div>
-            </div>
-
-            <div className="col-lg-4 col-md-6">
-              <div className="action-card" onClick={() => navigate("/report")}>
-                <div className="icon-box">📊</div>
-                <h5>Reports</h5>
-                <p className="text-muted">
-                  View employee reports and export summaries.
-                </p>
-                <button className="btn btn-secondary w-100">Open</button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
       {selectedImage && (
         <div
           className="modal fade show"
-          style={{
-            display: "block",
-            backgroundColor: "rgba(0,0,0,0.7)",
-          }}
+          style={{ display: "block", backgroundColor: "rgba(0,0,0,0.7)" }}
           tabIndex="-1"
           onClick={() => setSelectedImage(null)}
         >
-          <div
-            className="modal-dialog modal-dialog-centered modal-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="modal-dialog modal-dialog-centered modal-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-content border-0">
               <div className="modal-header">
                 <h5 className="modal-title">Image Preview</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setSelectedImage(null)}
-                ></button>
+                <button type="button" className="btn-close" onClick={() => setSelectedImage(null)}></button>
               </div>
-
               <div className="modal-body text-center">
-                <img
-                  src={selectedImage}
-                  alt="Preview"
-                  className="img-fluid rounded"
-                  style={{
-                    maxHeight: "70vh",
-                    objectFit: "contain",
-                  }}
-                />
+                <img src={selectedImage} alt="Preview" className="img-fluid rounded" style={{ maxHeight: "70vh", objectFit: "contain" }} />
               </div>
             </div>
           </div>
         </div>
       )}
     </Layout>
+  );
+}
+
+function MetricCard({ icon, label, value, tone }) {
+  return (
+    <div className={`metric-card metric-${tone}`}>
+      <div className="metric-icon">{icon}</div>
+      <div>
+        <p>{label}</p>
+        <h3>{value}</h3>
+      </div>
+    </div>
+  );
+}
+
+function DashboardPanel({ title, children }) {
+  return (
+    <section className="dashboard-panel">
+      <div className="dashboard-panel-header">
+        <h5>{title}</h5>
+      </div>
+      <div className="dashboard-panel-body">{children}</div>
+    </section>
+  );
+}
+
+function QuickAction({ icon, title, to, navigate }) {
+  return (
+    <button type="button" className="quick-action" onClick={() => navigate(to)}>
+      <span>{icon}</span>
+      <strong>{title}</strong>
+    </button>
+  );
+}
+
+function EmployeeDashboard({ stats, formatCurrency, setSelectedImage }) {
+  return (
+    <>
+      <div className="metric-grid employee-metric-grid">
+        <MetricCard icon={<FaUsers />} label="Name" value={stats.profile?.name || "-"} tone="blue" />
+        <MetricCard icon={<FaBuilding />} label="Department" value={stats.profile?.department_name || "N/A"} tone="green" />
+        <MetricCard icon={<FaBriefcase />} label="Designation" value={stats.profile?.designation || "N/A"} tone="amber" />
+        <MetricCard icon={<FaChartLine />} label="Profile Completion" value={`${stats.profileCompletion || 0}%`} tone="violet" />
+      </div>
+
+      <DashboardPanel title="Profile Completion">
+        <div className="progress professional-progress">
+          <div className="progress-bar" style={{ width: `${stats.profileCompletion || 0}%` }}>
+            {stats.profileCompletion || 0}%
+          </div>
+        </div>
+      </DashboardPanel>
+
+      <div className="row g-4">
+        <div className="col-lg-7">
+          <DashboardPanel title="Profile Details">
+            <div className="profile-detail-grid">
+              <div><span>Email</span><strong>{stats.profile?.email}</strong></div>
+              <div><span>Phone</span><strong>{stats.profile?.phone || "N/A"}</strong></div>
+              <div><span>Salary</span><strong>{formatCurrency(stats.profile?.salary)}</strong></div>
+              <div><span>Status</span><strong>{stats.profile?.status === "inactive" ? "Inactive" : "Active"}</strong></div>
+              <div className="profile-detail-wide"><span>Address</span><strong>{stats.profile?.address || "N/A"}</strong></div>
+            </div>
+          </DashboardPanel>
+        </div>
+
+        <div className="col-lg-5">
+          <DashboardPanel title="Skills">
+            {stats.skills?.length === 0 ? (
+              <p className="text-muted mb-0">No skills assigned</p>
+            ) : (
+              <div className="skill-chip-list">
+                {stats.skills.map((skill, index) => (
+                  <span key={index}>{skill.skill_name}</span>
+                ))}
+              </div>
+            )}
+          </DashboardPanel>
+        </div>
+      </div>
+
+      <DashboardPanel title="Uploaded Images">
+        {stats.images?.length === 0 ? (
+          <p className="text-muted mb-0">No images uploaded</p>
+        ) : (
+          <div className="employee-image-grid">
+            {stats.images.map((img) => (
+              <button type="button" key={img.id} onClick={() => setSelectedImage(img.image_url || img.url)}>
+                <img src={img.image_url || img.url} alt="Employee" />
+              </button>
+            ))}
+          </div>
+        )}
+      </DashboardPanel>
+    </>
   );
 }
 

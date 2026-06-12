@@ -19,6 +19,7 @@ import {
   FaBox,
   FaHistory,
   FaBell,
+  FaTimes,
 } from "react-icons/fa";
 import GlobalSearch from "./GlobalSearch";
 import api from "../services/api";
@@ -30,6 +31,9 @@ function Layout({ children, title }) {
   const [role, setRole] = useState("");
   const [employeeProfileId, setEmployeeProfileId] = useState(null);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [notificationDrawerOpen, setNotificationDrawerOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
 
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem("theme") === "dark";
@@ -61,6 +65,62 @@ function Layout({ children, title }) {
     } catch (error) {
       console.error("Failed to fetch unread count:", error);
     }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      setNotificationsLoading(true);
+      const response = await api.get("/notifications", {
+        params: {
+          page: 1,
+          limit: 10,
+          unread_only: false,
+        },
+      });
+      setNotifications(response.data.data || []);
+      setUnreadNotifications(response.data.unreadCount || 0);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  const openNotificationDrawer = async () => {
+    setNotificationDrawerOpen(true);
+    await fetchNotifications();
+  };
+
+  const closeNotificationDrawer = () => {
+    setNotificationDrawerOpen(false);
+  };
+
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      await api.put(`/notifications/${notificationId}/read`);
+      await fetchNotifications();
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+  };
+
+  const markAllNotificationsAsRead = async () => {
+    try {
+      await api.put("/notifications/read-all");
+      await fetchNotifications();
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+    }
+  };
+
+  const formatNotificationTime = (value) => {
+    if (!value) return "";
+    return new Date(value).toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   useEffect(() => {
@@ -179,7 +239,7 @@ function Layout({ children, title }) {
               <button
                 type="button"
                 className="topbar-icon-btn position-relative"
-                onClick={() => navigate("/notifications")}
+                onClick={openNotificationDrawer}
                 aria-label="Notifications"
                 title="Notifications"
               >
@@ -204,6 +264,88 @@ function Layout({ children, title }) {
 
         <div className="page-content">{children}</div>
       </main>
+
+      {role && (
+        <>
+          <div
+            className={`notification-backdrop ${notificationDrawerOpen ? "show" : ""}`}
+            onClick={closeNotificationDrawer}
+          />
+
+          <aside className={`notification-drawer ${notificationDrawerOpen ? "open" : ""}`}>
+            <div className="notification-drawer-header">
+              <div>
+                <h5>Notifications</h5>
+                <span>{unreadNotifications} unread</span>
+              </div>
+
+              <button
+                type="button"
+                className="notification-close-btn"
+                onClick={closeNotificationDrawer}
+                aria-label="Close notifications"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="notification-drawer-actions">
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-primary"
+                onClick={markAllNotificationsAsRead}
+                disabled={unreadNotifications === 0}
+              >
+                Mark all read
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-sm btn-link text-decoration-none"
+                onClick={() => {
+                  closeNotificationDrawer();
+                  navigate("/notifications");
+                }}
+              >
+                View all
+              </button>
+            </div>
+
+            <div className="notification-list">
+              {notificationsLoading ? (
+                <div className="notification-empty">Loading notifications...</div>
+              ) : notifications.length === 0 ? (
+                <div className="notification-empty">No notifications</div>
+              ) : (
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={`notification-item ${notification.is_read ? "" : "unread"}`}
+                  >
+                    <div className="notification-item-main">
+                      <div className="notification-item-title">
+                        {notification.title}
+                      </div>
+                      <p>{notification.message}</p>
+                      <span>{formatNotificationTime(notification.created_at)}</span>
+                    </div>
+
+                    {!notification.is_read && (
+                      <button
+                        type="button"
+                        className="notification-read-btn"
+                        onClick={() => markNotificationAsRead(notification.id)}
+                      >
+                        Mark read
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </aside>
+        </>
+      )}
     </div>
   );
 }
