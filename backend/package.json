@@ -7,6 +7,7 @@
     "start": "node server.js",
     "dev": "npx nodemon server.js",
     "migrate": "node run_migration.js",
+    "seed": "node seed_demo_data.js",
     "test": "jest --runInBand"
   },
   "keywords": [],
