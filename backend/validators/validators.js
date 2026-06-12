@@ -50,8 +50,10 @@ const employeeCreateSchema = Joi.object({
   email: Joi.string().email().required(),
   designation: Joi.string().required().max(100),
   department_id: Joi.number().integer().required(),
-  salary: Joi.number().positive(),
+  salary: Joi.number().positive().required(),
   phone: Joi.string().max(20).allow(""),
+  address: Joi.string().max(500).allow(""),
+  status: Joi.string().valid("active", "inactive").default("active"),
 });
 
 const employeeUpdateSchema = Joi.object({
@@ -61,6 +63,28 @@ const employeeUpdateSchema = Joi.object({
   department_id: Joi.number().integer(),
   salary: Joi.number().positive(),
   phone: Joi.string().max(20).allow(""),
+  address: Joi.string().max(500).allow(""),
+  status: Joi.string().valid("active", "inactive"),
+});
+
+// Auth Schemas
+const signupSchema = Joi.object({
+  name: Joi.string().required().max(200),
+  email: Joi.string().email().required(),
+  password: Joi.string().required().min(6).max(100),
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required().max(100),
+});
+
+const forgotPasswordSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+const resetPasswordSchema = Joi.object({
+  password: Joi.string().required().min(6).max(100),
 });
 
 // Search Schema
@@ -134,6 +158,10 @@ module.exports = {
   assetReturnSchema,
   employeeCreateSchema,
   employeeUpdateSchema,
+  signupSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
   searchSchema,
   paginationSchema,
   filterSchema,

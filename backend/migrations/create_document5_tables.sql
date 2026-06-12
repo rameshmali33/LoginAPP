@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS assets (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_assets_status ON assets(status);
-CREATE INDEX idx_assets_asset_code ON assets(asset_code);
+CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(status);
+CREATE INDEX IF NOT EXISTS idx_assets_asset_code ON assets(asset_code);
 
 -- ============================================
 -- ASSET ALLOCATIONS TABLE
@@ -37,9 +37,9 @@ CREATE TABLE IF NOT EXISTS asset_allocations (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_asset_allocations_asset_id ON asset_allocations(asset_id);
-CREATE INDEX idx_asset_allocations_employee_id ON asset_allocations(employee_id);
-CREATE INDEX idx_asset_allocations_status ON asset_allocations(status);
+CREATE INDEX IF NOT EXISTS idx_asset_allocations_asset_id ON asset_allocations(asset_id);
+CREATE INDEX IF NOT EXISTS idx_asset_allocations_employee_id ON asset_allocations(employee_id);
+CREATE INDEX IF NOT EXISTS idx_asset_allocations_status ON asset_allocations(status);
 
 -- ============================================
 -- ASSET HISTORY TABLE
@@ -53,8 +53,8 @@ CREATE TABLE IF NOT EXISTS asset_history (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_asset_history_asset_id ON asset_history(asset_id);
-CREATE INDEX idx_asset_history_created_at ON asset_history(created_at);
+CREATE INDEX IF NOT EXISTS idx_asset_history_asset_id ON asset_history(asset_id);
+CREATE INDEX IF NOT EXISTS idx_asset_history_created_at ON asset_history(created_at);
 
 -- ============================================
 -- NOTIFICATIONS TABLE
@@ -70,9 +70,9 @@ CREATE TABLE IF NOT EXISTS notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_notifications_user_id ON notifications(user_id);
-CREATE INDEX idx_notifications_is_read ON notifications(is_read);
-CREATE INDEX idx_notifications_created_at ON notifications(created_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at);
 
 -- ============================================
 -- AUDIT LOGS TABLE
@@ -90,10 +90,10 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_audit_logs_table_name ON audit_logs(table_name);
-CREATE INDEX idx_audit_logs_action_type ON audit_logs(action_type);
-CREATE INDEX idx_audit_logs_performed_by ON audit_logs(performed_by);
-CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_table_name ON audit_logs(table_name);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action_type ON audit_logs(action_type);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_performed_by ON audit_logs(performed_by);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
 
 -- ============================================
 -- VIEW: EMPLOYEE SUMMARY
@@ -137,9 +137,3 @@ BEGIN
     ORDER BY lt.leave_name;
 END;
 $$ LANGUAGE plpgsql;
-
--- ============================================
--- SEED DATA (Optional)
--- ============================================
--- Insert sample asset types/statuses if needed
--- You can add seed data here for initial setup

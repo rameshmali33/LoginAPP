@@ -6,12 +6,18 @@ const fs = require("fs");
 const pool = require("../config/db");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
+const logger = require("../utils/logger");
 
 const uploadsDir = path.join(__dirname, "../uploads");
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+// Create enterprise directories
+const subdirectories = ["employees", "documents", "certificates", "assets"];
+subdirectories.forEach((subdir) => {
+  const dirPath = path.join(uploadsDir, subdir);
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+});
 
 const addActivityLog = async (action, description, userId) => {
   try {
@@ -23,13 +29,16 @@ const addActivityLog = async (action, description, userId) => {
       [action, description, userId || null]
     );
   } catch (error) {
-    console.error("Activity Log Error:", error);
+    logger.error("Activity Log Error:", error);
   }
 };
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadsDir);
+    // Determine the directory based on type parameter
+    const type = req.query.type || "employees";
+    const folder = subdirectories.includes(type) ? type : "employees";
+    cb(null, path.join(uploadsDir, folder));
   },
 
   filename: (req, file, cb) => {
@@ -43,12 +52,20 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    "application/pdf",
+  ];
+  const allowedExtensions = [".jpeg", ".jpg", ".png", ".webp", ".pdf"];
+  const extension = path.extname(file.originalname).toLowerCase();
 
-  if (allowedTypes.includes(file.mimetype)) {
+  if (allowedMimeTypes.includes(file.mimetype) && allowedExtensions.includes(extension)) {
     cb(null, true);
   } else {
-    cb(new Error("Only JPG, JPEG, PNG and WEBP files are allowed"), false);
+    cb(new Error("Only JPG, JPEG, PNG, WEBP and PDF files are allowed"), false);
   }
 };
 
@@ -56,7 +73,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 2 * 1024 * 1024,
+    fileSize: 5 * 1024 * 1024, // 5MB limit
     files: 5,
   },
 });
@@ -66,13 +83,15 @@ router.post(
   authMiddleware,
   roleMiddleware("admin"),
   upload.array("images", 5),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       const { employeeId } = req.params;
+      const type = req.query.type || "employees";
+      const folder = subdirectories.includes(type) ? type : "employees";
 
       if (!req.files || req.files.length === 0) {
         return res.status(400).json({
-          message: "No images uploaded",
+          message: "No files uploaded",
         });
       }
 
@@ -91,7 +110,7 @@ router.post(
       const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
 
       for (const file of req.files) {
-        const imageUrl = `${backendUrl}/uploads/${file.filename}`;
+        const imageUrl = `${backendUrl}/uploads/${folder}/${file.filename}`;
 
         const result = await pool.query(
           `
@@ -116,11 +135,8 @@ router.post(
         images: uploadedImages,
       });
     } catch (error) {
-      console.error("Upload Error:", error);
-
-      res.status(500).json({
-        message: error.message || "Server Error",
-      });
+      logger.error("Upload Error:", error);
+      next(error);
     }
   }
 );
@@ -129,7 +145,7 @@ router.get(
   "/:employeeId",
   authMiddleware,
   roleMiddleware("admin", "employee"),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       const { employeeId } = req.params;
 
@@ -154,11 +170,8 @@ router.get(
 
       res.json(images.rows);
     } catch (error) {
-      console.error("Get Images Error:", error);
-
-      res.status(500).json({
-        message: "Server Error",
-      });
+      logger.error("Get Images Error:", error);
+      next(error);
     }
   }
 );
@@ -167,7 +180,7 @@ router.delete(
   "/image/:imageId",
   authMiddleware,
   roleMiddleware("admin"),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       const { imageId } = req.params;
 
@@ -189,8 +202,10 @@ router.delete(
       }
 
       const imageUrl = image.rows[0].image_url;
-      const filename = imageUrl.split("/").pop();
-      const filePath = path.join(uploadsDir, filename);
+      const parts = imageUrl.split("/");
+      const filename = parts.pop();
+      const folder = parts.pop(); // e.g. employees, documents, etc.
+      const filePath = path.join(uploadsDir, folder, filename);
 
       await pool.query("DELETE FROM employee_images WHERE id = $1", [imageId]);
 
@@ -208,11 +223,8 @@ router.delete(
         message: "Image deleted successfully",
       });
     } catch (error) {
-      console.error("Delete Image Error:", error);
-
-      res.status(500).json({
-        message: "Server Error",
-      });
+      logger.error("Delete Image Error:", error);
+      next(error);
     }
   }
 );

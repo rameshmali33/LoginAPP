@@ -1,7 +1,11 @@
-require("dotenv").config();
-
 const path = require("path");
-const uploadRoutes = require("./routes/uploads");
+const dotenv = require("dotenv");
+
+// Environment Based Configuration
+const env = process.env.NODE_ENV || "development";
+dotenv.config({ path: path.join(__dirname, `.env.${env}`) });
+dotenv.config(); // Fallback to root .env
+
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -11,12 +15,14 @@ const authRoutes = require("./routes/auth");
 const departmentRoutes = require("./routes/departments");
 const skillRoutes = require("./routes/skills");
 const employeeRoutes = require("./routes/employees");
+const uploadRoutes = require("./routes/uploads");
 const employeeSkillRoutes = require("./routes/employeeSkills");
 const dashboardRoutes = require("./routes/dashboard");
 const reportRoutes = require("./routes/reports");
 const transporter = require("./config/mailer");
 const profileLinkRequestRoutes = require("./routes/profileLinkRequests");
 const leaveRoutes = require("./routes/leaves");
+const attendanceRoutes = require("./routes/attendance");
 const assetRoutes = require("./routes/assets");
 const notificationRoutes = require("./routes/notifications");
 const auditRoutes = require("./routes/audit");
@@ -25,8 +31,12 @@ const healthRoutes = require("./routes/health");
 const { swaggerUi, swaggerDocument } = require("./config/swagger");
 const logger = require("./utils/logger");
 const errorHandler = require("./middleware/errorHandler");
+const { initCronJobs } = require("./jobs/cronJobs");
 
 const app = express();
+
+// Initialize Background Cron Jobs
+initCronJobs();
 
 // Security Middlewares
 app.use(
@@ -53,25 +63,34 @@ app.use(express.json());
 // API Documentation (Swagger)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-app.use("/api/auth", authRoutes);
-app.use("/api/departments", departmentRoutes);
-app.use("/api/skills", skillRoutes);
-app.use("/api/employees", employeeRoutes);
+// Mount routes with API versioning support
+const v1Prefix = "/api/v1";
+const legacyPrefix = "/api";
+
+[v1Prefix, legacyPrefix].forEach((prefix) => {
+  app.use(`${prefix}/auth`, authRoutes);
+  app.use(`${prefix}/departments`, departmentRoutes);
+  app.use(`${prefix}/skills`, skillRoutes);
+  app.use(`${prefix}/employees`, employeeRoutes);
+  app.use(`${prefix}/uploads`, uploadRoutes);
+  app.use(`${prefix}/employee-skills`, employeeSkillRoutes);
+  app.use(`${prefix}/dashboard`, dashboardRoutes);
+  app.use(`${prefix}/reports`, reportRoutes);
+  app.use(`${prefix}/profile-link-requests`, profileLinkRequestRoutes);
+  app.use(`${prefix}/leaves`, leaveRoutes);
+  app.use(`${prefix}/attendance`, attendanceRoutes);
+  app.use(`${prefix}/assets`, assetRoutes);
+  app.use(`${prefix}/notifications`, notificationRoutes);
+  app.use(`${prefix}/audit-logs`, auditRoutes);
+  app.use(`${prefix}/search`, searchRoutes);
+  app.use(`${prefix}/health`, healthRoutes);
+});
+
+// Serve uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/api/uploads", uploadRoutes);
-app.use("/api/employee-skills", employeeSkillRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/reports", reportRoutes);
-app.use("/api/profile-link-requests", profileLinkRequestRoutes);
-app.use("/api/leaves", leaveRoutes);
-app.use("/api/assets", assetRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/audit-logs", auditRoutes);
-app.use("/api/search", searchRoutes);
-app.use("/api/health", healthRoutes);
 
 app.listen(process.env.PORT, () => {
-  logger.info(`🚀 Server running on port ${process.env.PORT}`);
+  logger.info(`🚀 Server running in [${process.env.NODE_ENV || "development"}] mode on port ${process.env.PORT}`);
 });
 
 app.get("/", (req, res) => {
@@ -80,11 +99,10 @@ app.get("/", (req, res) => {
 
 app.get("/test-email", async (req, res) => {
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    await transporter({
       to: process.env.EMAIL_USER,
       subject: "Test Email",
-      text: "Render email test",
+      html: "<p>Render email test</p>",
     });
 
     res.send("Email sent");

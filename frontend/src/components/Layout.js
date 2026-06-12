@@ -14,6 +14,7 @@ import {
   FaSun,
   FaUserCircle,
   FaCalendarCheck,
+  FaUserClock,
   FaBox,
   FaHistory,
   FaBell,
@@ -86,6 +87,12 @@ function Layout({ children, title }) {
           {role && (
             <NavLink to="/leaves">
               <FaCalendarCheck /> Leaves
+            </NavLink>
+          )}
+
+          {role && (
+            <NavLink to="/attendance">
+              <FaUserClock /> Attendance
             </NavLink>
           )}
 
