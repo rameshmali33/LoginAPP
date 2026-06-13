@@ -17,6 +17,11 @@ router.post(
   authController.forgotPassword
 );
 router.post(
+  "/resend-verification",
+  validateSchema(forgotPasswordSchema),
+  authController.resendVerification
+);
+router.post(
   "/reset-password/:token",
   validateSchema(resetPasswordSchema),
   authController.resetPassword

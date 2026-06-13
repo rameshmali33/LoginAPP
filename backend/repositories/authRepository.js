@@ -46,6 +46,17 @@ class AuthRepository {
     return result.rows[0];
   }
 
+  async updateUserVerificationToken(userId, verificationToken) {
+    const query = `
+      UPDATE users
+      SET verification_token = $1
+      WHERE id = $2
+      RETURNING *
+    `;
+    const result = await pool.query(query, [verificationToken, userId]);
+    return result.rows[0];
+  }
+
   async updateUserResetToken(email, resetToken, expiry) {
     const query = `
       UPDATE users 

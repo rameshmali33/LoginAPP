@@ -16,6 +16,22 @@ const BACKEND_URL = normalizeUrl(
 );
 
 class AuthService {
+  async sendVerificationEmail(user, verificationToken) {
+    const verifyLink = `${BACKEND_URL}/api/auth/verify-email/${verificationToken}`;
+
+    logger.info(`Sending verification email to: ${user.email}`);
+    await sendEmail({
+      to: user.email,
+      subject: "Verify Your Email",
+      html: `
+        <h2>Welcome ${user.name}</h2>
+        <p>Please verify your email:</p>
+        <a href="${verifyLink}">Verify Email</a>
+      `,
+    });
+    logger.info("Verification email sent successfully");
+  }
+
   async signup(name, email, password) {
     const userExist = await authRepository.getUserByEmail(email);
     if (userExist) {
@@ -35,25 +51,35 @@ class AuthService {
       verificationToken
     );
 
-    const verifyLink = `${BACKEND_URL}/api/auth/verify-email/${verificationToken}`;
-
-    logger.info(`Sending verification email to: ${email}`);
     try {
-      await sendEmail({
-        to: email,
-        subject: "Verify Your Email",
-        html: `
-          <h2>Welcome ${name}</h2>
-          <p>Please verify your email:</p>
-          <a href="${verifyLink}">Verify Email</a>
-        `,
-      });
-      logger.info("Verification email sent successfully");
+      await this.sendVerificationEmail(newUser, verificationToken);
     } catch (err) {
       logger.warn("Failed to send verification email:", err.message);
     }
 
     return newUser;
+  }
+
+  async resendVerification(email) {
+    const user = await authRepository.getUserByEmail(email);
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (user.is_verified) {
+      const error = new Error("Email is already verified");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const verificationToken = user.verification_token || crypto.randomBytes(32).toString("hex");
+    const updatedUser = user.verification_token
+      ? user
+      : await authRepository.updateUserVerificationToken(user.id, verificationToken);
+
+    await this.sendVerificationEmail(updatedUser, verificationToken);
   }
 
   async login(email, password) {

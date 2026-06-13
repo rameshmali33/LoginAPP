@@ -123,6 +123,19 @@ class AuthController {
     }
   };
 
+  resendVerification = async (req, res, next) => {
+    try {
+      const { email } = req.validated;
+      await authService.resendVerification(email);
+      res.json({
+        success: true,
+        message: "Verification email sent successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   resetPassword = async (req, res, next) => {
     try {
       const { token } = req.params;

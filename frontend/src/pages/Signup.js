@@ -21,6 +21,7 @@ function Signup() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -83,6 +84,33 @@ function Signup() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    const email = form.email.trim();
+
+    if (!email) {
+      Swal.fire("Email Required", "Enter your email address first", "warning");
+      return;
+    }
+
+    try {
+      setResending(true);
+      const res = await API.post("/auth/resend-verification", { email });
+      Swal.fire(
+        "Verification Email Sent",
+        res.data.message || "Please check your inbox for the verification link.",
+        "success"
+      );
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Could Not Send Link",
+        text: err.response?.data?.message || "Unable to send verification email",
+      });
+    } finally {
+      setResending(false);
     }
   };
 
@@ -236,6 +264,17 @@ function Signup() {
           <div className="signup-login-link">
             <span>Already have an account?</span>
             <Link to="/login">Login</Link>
+          </div>
+
+          <div className="signup-resend-box">
+            <span>Registered but not verified?</span>
+            <button
+              type="button"
+              onClick={handleResendVerification}
+              disabled={resending}
+            >
+              {resending ? "Sending..." : "Resend verification link"}
+            </button>
           </div>
         </div>
 

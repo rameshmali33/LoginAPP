@@ -263,6 +263,39 @@
   text-decoration: underline;
 }
 
+.signup-resend-box {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.signup-resend-box button {
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  font-weight: 900;
+  padding: 0;
+  text-align: left;
+}
+
+.signup-resend-box button:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.signup-resend-box button:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
 .signup-footer {
   margin: 0;
   text-align: center;
@@ -299,7 +332,8 @@
   }
 
   .signup-card-header,
-  .signup-login-link {
+  .signup-login-link,
+  .signup-resend-box {
     align-items: flex-start;
     flex-direction: column;
   }
