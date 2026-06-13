@@ -2,7 +2,20 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import API from "../services/api";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  FaArrowRight,
+  FaCheckCircle,
+  FaEnvelope,
+  FaEye,
+  FaEyeSlash,
+  FaIdBadge,
+  FaLock,
+  FaShieldAlt,
+  FaUser,
+  FaUserPlus,
+  FaUsersCog,
+} from "react-icons/fa";
+import "./Signup.css";
 
 function Signup() {
   const navigate = useNavigate();
@@ -74,113 +87,163 @@ function Signup() {
   };
 
   return (
-    <div className="container">
-      <div className="row vh-100 justify-content-center align-items-center">
-        <div className="col-md-5">
-          <div className="card shadow border-0 p-4">
-            <h2 className="text-center fw-bold mb-2">Create Account</h2>
+    <main className="signup-page">
+      <section className="signup-brand-panel">
+        <div className="signup-brand-mark">
+          <span>EP</span>
+        </div>
 
-            <p className="text-center text-muted mb-4">
-              Register to access the Employee Management System
-            </p>
+        <div className="signup-brand-copy">
+          <p className="signup-kicker">Create your workspace access</p>
+          <h1>Join EP Management System</h1>
+          <p>
+            Register your account to access employee records, attendance,
+            payroll, assets, reports, and operational workflows from one secure
+            platform.
+          </p>
+        </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label className="form-label fw-semibold">Full Name</label>
+        <div className="signup-benefits">
+          <div className="signup-benefit">
+            <FaUsersCog />
+            <div>
+              <strong>Role-based workspace</strong>
+              <span>Separate access for employees, managers, HR, and admins.</span>
+            </div>
+          </div>
 
+          <div className="signup-benefit">
+            <FaShieldAlt />
+            <div>
+              <strong>Verified access</strong>
+              <span>Email verification keeps account onboarding controlled.</span>
+            </div>
+          </div>
+
+          <div className="signup-benefit">
+            <FaCheckCircle />
+            <div>
+              <strong>Complete operations</strong>
+              <span>Profiles, leave, payroll, reports, assets, and notifications.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="signup-form-panel">
+        <div className="signup-card">
+          <div className="signup-card-header">
+            <div className="signup-card-icon">
+              <FaUserPlus />
+            </div>
+            <div>
+              <h2>Create account</h2>
+              <p>Use your official details to register.</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="signup-form">
+            <div className="signup-field">
+              <label htmlFor="name">Full name</label>
+              <div className="signup-input-wrap">
+                <FaUser />
                 <input
+                  id="name"
                   type="text"
                   name="name"
-                  placeholder="Enter your name"
-                  className="form-control form-control-lg"
+                  placeholder="Enter your full name"
                   value={form.name}
                   onChange={handleChange}
                   required
                 />
               </div>
+            </div>
 
-              <div className="mb-3">
-                <label className="form-label fw-semibold">Email</label>
-
+            <div className="signup-field">
+              <label htmlFor="email">Email address</label>
+              <div className="signup-input-wrap">
+                <FaEnvelope />
                 <input
+                  id="email"
                   type="email"
                   name="email"
-                  placeholder="Enter your email"
-                  className="form-control form-control-lg"
+                  placeholder="name@company.com"
                   value={form.email}
                   onChange={handleChange}
                   required
                 />
               </div>
-
-              <div className="mb-3">
-                <label className="form-label fw-semibold">Password</label>
-
-                <div className="input-group input-group-lg">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    placeholder="Enter your password"
-                    className="form-control"
-                    value={form.password}
-                    onChange={handleChange}
-                    required
-                  />
-
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="form-label fw-semibold">
-                  Confirm Password
-                </label>
-
-                <div className="input-group input-group-lg">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    placeholder="Confirm your password"
-                    className="form-control"
-                    value={form.confirmPassword}
-                    onChange={handleChange}
-                    required
-                  />
-
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    onClick={() =>
-                      setShowConfirmPassword(!showConfirmPassword)
-                    }
-                  >
-                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                className="btn btn-success btn-lg w-100"
-                type="submit"
-                disabled={loading}
-              >
-                {loading ? "Creating Account..." : "Register"}
-              </button>
-            </form>
-
-            <div className="mt-3 text-center">
-              Already have an account? <Link to="/login">Login</Link>
             </div>
+
+            <div className="signup-field">
+              <label htmlFor="password">Password</label>
+              <div className="signup-input-wrap">
+                <FaLock />
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Minimum 6 characters"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                />
+
+                <button
+                  type="button"
+                  className="signup-password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </div>
+
+            <div className="signup-field">
+              <label htmlFor="confirmPassword">Confirm password</label>
+              <div className="signup-input-wrap">
+                <FaIdBadge />
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Re-enter password"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  required
+                />
+
+                <button
+                  type="button"
+                  className="signup-password-toggle"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={
+                    showConfirmPassword ? "Hide password" : "Show password"
+                  }
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="signup-submit" disabled={loading}>
+              {loading ? "Creating account..." : "Create account"}
+              {!loading && <FaArrowRight />}
+            </button>
+          </form>
+
+          <div className="signup-login-link">
+            <span>Already have an account?</span>
+            <Link to="/login">Login</Link>
           </div>
         </div>
-      </div>
-    </div>
+
+        <p className="signup-footer">
+          © {new Date().getFullYear()} EP Management System
+        </p>
+      </section>
+    </main>
   );
 }
 
