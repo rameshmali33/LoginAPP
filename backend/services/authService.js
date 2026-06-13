@@ -9,7 +9,7 @@ const logger = require("../utils/logger");
 const normalizeUrl = (url) => String(url || "").replace(/\/+$/, "");
 
 const FRONTEND_URL = normalizeUrl(
-  process.env.FRONTEND_URL || "https://employeemanagementsystem-ten.vercel.app"
+  process.env.FRONTEND_URL || process.env.CLIENT_URL || ""
 );
 const BACKEND_URL = normalizeUrl(
   process.env.BACKEND_URL || "https://loginapp-ezh0.onrender.com"
@@ -132,6 +132,12 @@ class AuthService {
     const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     await authRepository.updateUserResetToken(email, resetToken, expiry);
+
+    if (!FRONTEND_URL) {
+      const error = new Error("Frontend URL is not configured");
+      error.statusCode = 500;
+      throw error;
+    }
 
     const resetLink = `${FRONTEND_URL}/reset-password/${resetToken}`;
 

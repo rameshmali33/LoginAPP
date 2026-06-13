@@ -3,12 +3,16 @@ const authService = require("../services/authService");
 
 const normalizeUrl = (url) => String(url || "").replace(/\/+$/, "");
 const FRONTEND_URL = normalizeUrl(
-  process.env.FRONTEND_URL || "https://employeemanagementsystem-ten.vercel.app"
+  process.env.FRONTEND_URL || process.env.CLIENT_URL || ""
 );
 
 const sendVerificationPage = (res, { success, title, message }) => {
   const color = success ? "#16a34a" : "#dc2626";
   const icon = success ? "✓" : "!";
+
+  const loginAction = FRONTEND_URL
+    ? `<a href="${FRONTEND_URL}/login">Go to Login</a>`
+    : `<p class="hint">Frontend URL is not configured. Please open your application login page manually.</p>`;
 
   res
     .status(success ? 200 : 400)
@@ -68,6 +72,10 @@ const sendVerificationPage = (res, { success, title, message }) => {
         font-weight: 700;
         text-decoration: none;
       }
+      .hint {
+        margin-top: 18px;
+        font-size: 14px;
+      }
     </style>
   </head>
   <body>
@@ -75,7 +83,7 @@ const sendVerificationPage = (res, { success, title, message }) => {
       <div class="icon">${icon}</div>
       <h1>${title}</h1>
       <p>${message}</p>
-      <a href="${FRONTEND_URL}/login">Go to Login</a>
+      ${loginAction}
     </main>
   </body>
 </html>`);
