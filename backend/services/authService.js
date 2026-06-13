@@ -6,7 +6,14 @@ const authRepository = require("../repositories/authRepository");
 const sendEmail = require("../config/mailer");
 const logger = require("../utils/logger");
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "https://employeemanagementsystem-ten.vercel.app";
+const normalizeUrl = (url) => String(url || "").replace(/\/+$/, "");
+
+const FRONTEND_URL = normalizeUrl(
+  process.env.FRONTEND_URL || "https://employeemanagementsystem-ten.vercel.app"
+);
+const BACKEND_URL = normalizeUrl(
+  process.env.BACKEND_URL || "https://loginapp-ezh0.onrender.com"
+);
 
 class AuthService {
   async signup(name, email, password) {
@@ -28,7 +35,7 @@ class AuthService {
       verificationToken
     );
 
-    const verifyLink = `${FRONTEND_URL}/verify-email/${verificationToken}`;
+    const verifyLink = `${BACKEND_URL}/api/auth/verify-email/${verificationToken}`;
 
     logger.info(`Sending verification email to: ${email}`);
     try {
