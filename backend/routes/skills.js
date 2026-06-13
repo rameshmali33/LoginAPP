@@ -4,7 +4,6 @@ const pool = require("../config/db");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
-// GET Skills
 router.get("/",authMiddleware, roleMiddleware("admin", "employee"), async (req, res) => {
   try {
     const skills = await pool.query(
@@ -26,7 +25,6 @@ router.get("/",authMiddleware, roleMiddleware("admin", "employee"), async (req, 
   }
 });
 
-// POST Skill
 router.post("/",authMiddleware, roleMiddleware("admin"), async (req, res) => {
   try {
     const { skill_name } = req.body;
@@ -75,7 +73,6 @@ router.post("/",authMiddleware, roleMiddleware("admin"), async (req, res) => {
   }
 });
 
-// PUT Skill
 router.put("/:id", authMiddleware, roleMiddleware("admin"), async (req, res) => {
   try {
     const { id } = req.params;
@@ -132,7 +129,6 @@ router.put("/:id", authMiddleware, roleMiddleware("admin"), async (req, res) => 
   }
 });
 
-// DELETE Skill
 router.delete("/:id", authMiddleware, roleMiddleware("admin"), async (req, res) => {
   try {
     const { id } = req.params;

@@ -1,7 +1,3 @@
-/**
- * FormSelect Component
- * Reusable dropdown component
- */
 
 import React from "react";
 

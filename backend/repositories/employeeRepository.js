@@ -1,7 +1,3 @@
-/**
- * Employee Repository
- * Database access layer for employee profile management
- */
 
 const pool = require("../config/db");
 
@@ -67,31 +63,26 @@ class EmployeeRepository {
     `;
     const params = [];
 
-    // Filter by department
     if (filters.department_id) {
       params.push(filters.department_id);
       query += ` AND ep.department_id = $${params.length}`;
     }
 
-    // Filter by status
     if (filters.status) {
       params.push(filters.status);
       query += ` AND ep.status = $${params.length}`;
     }
 
-    // Search query
     if (filters.search) {
       params.push(`%${filters.search}%`);
       query += ` AND (ep.name ILIKE $${params.length} OR ep.email ILIKE $${params.length} OR ep.designation ILIKE $${params.length})`;
     }
 
-    // Sorting
     const validColumns = ["id", "name", "email", "designation", "salary", "status", "created_at"];
     const sortColumn = validColumns.includes(sortBy) ? sortBy : "id";
     const orderDir = order.toUpperCase() === "DESC" ? "DESC" : "ASC";
     query += ` ORDER BY ep.${sortColumn} ${orderDir}`;
 
-    // Pagination
     params.push(limit);
     params.push(offset);
     query += ` LIMIT $${params.length - 1} OFFSET $${params.length}`;

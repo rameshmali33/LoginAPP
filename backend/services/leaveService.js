@@ -12,7 +12,6 @@ class LeaveService {
   }
 
   async applyLeave(employeeId, leaveTypeId, fromDate, toDate, reason) {
-    // Calculate total days
     const start = new Date(fromDate);
     const end = new Date(toDate);
 
@@ -27,7 +26,6 @@ class LeaveService {
     const diffTime = Math.abs(end - start);
     const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
-    // Check available balance
     const available = await leaveRepository.checkLeaveBalance(employeeId, leaveTypeId);
     if (available < totalDays) {
       throw new Error(`Insufficient leave balance. Required: ${totalDays}, Available: ${available}`);
@@ -65,7 +63,6 @@ class LeaveService {
     return await leaveRepository.getPendingApplicationsForHR();
   }
 
-  // Manager action (updates status to pending_hr or rejected)
   async reviewByManager(leaveId, managerUserId, status, remarks) {
     if (status !== "approved" && status !== "rejected") {
       throw new Error("Status must be approved or rejected");
@@ -120,7 +117,6 @@ class LeaveService {
     }
   }
 
-  // HR action (final approval updates status to approved/rejected, deducts available days on approval)
   async reviewByHR(leaveId, hrUserId, status, remarks) {
     if (status !== "approved" && status !== "rejected") {
       throw new Error("Status must be approved or rejected");
@@ -144,7 +140,6 @@ class LeaveService {
         updatedApp = await leaveRepository.updateApplicationStatus(client, leaveId, "rejected");
         await leaveRepository.createApprovalHistory(client, leaveId, hrUserId, "rejected_by_hr", remarks);
       } else {
-        // Double check balance before deducting
         const available = await leaveRepository.checkLeaveBalance(
           application.employee_id,
           application.leave_type_id
@@ -153,7 +148,6 @@ class LeaveService {
           throw new Error(`Insufficient leave balance to approve this leave. Required: ${application.total_days}, Available: ${available}`);
         }
 
-        // Deduct balance
         await leaveRepository.deductLeaveBalance(
           client,
           application.employee_id,
@@ -161,10 +155,8 @@ class LeaveService {
           application.total_days
         );
 
-        // Update application status to approved
         updatedApp = await leaveRepository.updateApplicationStatus(client, leaveId, "approved");
 
-        // Log to history
         await leaveRepository.createApprovalHistory(client, leaveId, hrUserId, "approved_by_hr", remarks);
       }
 
@@ -187,7 +179,6 @@ class LeaveService {
     }
   }
 
-  // Get combined leave reports data
   async getLeaveReports() {
     const stats = await leaveRepository.getLeaveStats();
     const departmentLeaves = await leaveRepository.getDepartmentWiseLeaves();

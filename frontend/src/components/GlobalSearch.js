@@ -1,7 +1,3 @@
-/**
- * GlobalSearch Component
- * Search bar with debounced search and dropdown results
- */
 
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +11,6 @@ const GlobalSearch = () => {
   const searchRef = useRef(null);
   const navigate = useNavigate();
 
-  // Debounced search
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (query.trim().length >= 2) {

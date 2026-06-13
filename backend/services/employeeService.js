@@ -1,7 +1,3 @@
-/**
- * Employee Service
- * Business logic for employee profile management and emailing
- */
 
 const employeeRepository = require("../repositories/employeeRepository");
 const sendEmail = require("../config/mailer");
@@ -12,7 +8,6 @@ class EmployeeService {
   async createEmployee(data, userId) {
     const employee = await employeeRepository.createEmployee(data);
 
-    // Send Welcome Email
     logger.info(`Sending welcome email to newly created employee: ${employee.email}`);
     try {
       await sendEmail({
@@ -31,7 +26,6 @@ class EmployeeService {
       logger.warn("Failed to send welcome email:", err.message);
     }
 
-    // Add activity log
     await employeeRepository.addActivityLog(
       "Employee Created",
       `${employee.name} employee profile was created`,
@@ -76,7 +70,6 @@ class EmployeeService {
   }
 
   async updateEmployee(id, data, userId) {
-    // Check if employee exists
     const existing = await employeeRepository.getEmployeeById(id);
     if (!existing) {
       const error = new Error("Employee not found");

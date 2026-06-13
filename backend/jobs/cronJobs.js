@@ -1,7 +1,3 @@
-/**
- * Background Cron Jobs
- * Modules: Daily Leave Report, Daily Backup, Notification Cleanup
- */
 
 const cron = require("node-cron");
 const logger = require("../utils/logger");
@@ -12,11 +8,9 @@ const path = require("path");
 const initCronJobs = () => {
   logger.info("Initializing background cron jobs...");
 
-  // 1. Daily Leave Report: Runs daily at midnight (0 0 * * *)
   cron.schedule("0 0 * * *", async () => {
     logger.info("Running Daily Leave Report Job...");
     try {
-      // Aggregate pending leaves
       const result = await pool.query(`
         SELECT COUNT(*) as count 
         FROM leave_applications 
@@ -29,7 +23,6 @@ const initCronJobs = () => {
     }
   });
 
-  // 2. Daily Backup: Runs daily at 1:00 AM (0 1 * * *)
   cron.schedule("0 1 * * *", async () => {
     logger.info("Running Daily Backup Job...");
     try {
@@ -38,7 +31,6 @@ const initCronJobs = () => {
         fs.mkdirSync(backupDir, { recursive: true });
       }
 
-      // Fetch user profile information for backup
       const result = await pool.query(`
         SELECT id, name, email, role, is_verified, created_at 
         FROM users
@@ -55,11 +47,9 @@ const initCronJobs = () => {
     }
   });
 
-  // 3. Notification Cleanup: Runs daily at 2:00 AM (0 2 * * *)
   cron.schedule("0 2 * * *", async () => {
     logger.info("Running Notification Cleanup Job...");
     try {
-      // Remove notifications older than 30 days
       const result = await pool.query(`
         DELETE FROM notifications 
         WHERE created_at < NOW() - INTERVAL '30 days'

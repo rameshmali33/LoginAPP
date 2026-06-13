@@ -4,7 +4,6 @@ const pool = require("../config/db");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
-// GET all departments
 router.get("/",authMiddleware, roleMiddleware("admin", "employee"), async (req, res) => {
   try {
     const departments = await pool.query(
@@ -20,7 +19,6 @@ router.get("/",authMiddleware, roleMiddleware("admin", "employee"), async (req, 
   }
 });
 
-// POST create department
 router.post("/",authMiddleware, roleMiddleware("admin"), async (req, res) => {
   try {
     const { department_name } = req.body;
@@ -69,7 +67,6 @@ router.post("/",authMiddleware, roleMiddleware("admin"), async (req, res) => {
   }
 });
 
-// PUT update department
 router.put("/:id", authMiddleware, roleMiddleware("admin"), async (req, res) => {
   try {
     const { id } = req.params;
@@ -126,7 +123,6 @@ router.put("/:id", authMiddleware, roleMiddleware("admin"), async (req, res) => 
   }
 });
 
-// DELETE department
 router.delete("/:id", authMiddleware, roleMiddleware("admin"), async (req, res) => {
   try {
     const { id } = req.params;

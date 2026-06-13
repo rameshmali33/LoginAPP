@@ -1,16 +1,8 @@
-/**
- * Notification Service
- * Business logic for notifications
- */
 
 const notificationRepository = require("../repositories/notificationRepository");
 const logger = require("../utils/logger");
 
 class NotificationService {
-  /**
-   * Create notification for user
-   * Called from asset/leave services when events occur
-   */
   async notifyUser(userId, title, message, relatedEntity = null, relatedId = null) {
     if (!userId) return null;
 
@@ -30,9 +22,6 @@ class NotificationService {
     }
   }
 
-  /**
-   * Notify multiple users
-   */
   async notifyUsers(userIds, title, message, relatedEntity = null, relatedId = null) {
     const notifications = [];
     for (const userId of userIds) {
@@ -46,9 +35,6 @@ class NotificationService {
     return notifications;
   }
 
-  /**
-   * Get user notifications
-   */
   async getUserNotifications(userId, page = 1, limit = 20, unreadOnly = false) {
     const offset = (page - 1) * limit;
     const notifications = await notificationRepository.getUserNotifications(
@@ -70,16 +56,10 @@ class NotificationService {
     };
   }
 
-  /**
-   * Get unread count for user
-   */
   async getUnreadCount(userId) {
     return await notificationRepository.getUnreadCount(userId);
   }
 
-  /**
-   * Mark notification as read
-   */
   async markAsRead(notificationId, userId) {
     const notification = await notificationRepository.getNotificationById(notificationId);
     if (!notification) {
@@ -95,17 +75,10 @@ class NotificationService {
     return await notificationRepository.markAsRead(notificationId);
   }
 
-  /**
-   * Mark all notifications as read for user
-   */
   async markAllAsRead(userId) {
     return await notificationRepository.markAllAsRead(userId);
   }
 
-  /**
-   * Broadcast notification to admins/managers
-   * Called after important events (asset damaged, leave rejected, etc.)
-   */
   async broadcastToAdmins(title, message, relatedEntity = null, relatedId = null) {
     const adminIds = await notificationRepository.getUserIdsByRoles(["admin"]);
     return await this.notifyUsers(adminIds, title, message, relatedEntity, relatedId);

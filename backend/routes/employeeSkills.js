@@ -3,7 +3,6 @@ const router = express.Router();
 const pool = require("../config/db");
 const authMiddleware = require("../middleware/authMiddleware");
 
-// Assign skills to employee
 router.post("/:employeeId", authMiddleware, async (req, res) => {
   try {
     const { employeeId } = req.params;
@@ -41,7 +40,6 @@ router.post("/:employeeId", authMiddleware, async (req, res) => {
   }
 });
 
-// Get skills of employee
 router.get("/:employeeId", authMiddleware, async (req, res) => {
   try {
     const { employeeId } = req.params;

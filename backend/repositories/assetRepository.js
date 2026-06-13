@@ -1,14 +1,7 @@
-/**
- * Asset Repository
- * Direct SQL queries for asset operations
- */
 
 const pool = require("../config/db");
 
 class AssetRepository {
-  /**
-   * Get all assets with pagination, filtering, sorting
-   */
   async getAssets(
     limit = 10,
     offset = 0,
@@ -19,19 +12,16 @@ class AssetRepository {
     let query = "SELECT * FROM assets WHERE 1=1";
     const params = [];
 
-    // Filter by status
     if (filters.status) {
       params.push(filters.status);
       query += ` AND status = $${params.length}`;
     }
 
-    // Filter by asset type
     if (filters.asset_type) {
       params.push(filters.asset_type);
       query += ` AND asset_type ILIKE $${params.length}`;
     }
 
-    // Safe sorting (whitelist known columns)
     const validColumns = [
       "id",
       "asset_code",
@@ -45,7 +35,6 @@ class AssetRepository {
     const orderDir = order.toUpperCase() === "ASC" ? "ASC" : "DESC";
     query += ` ORDER BY ${sortColumn} ${orderDir}`;
 
-    // Pagination
     params.push(limit);
     params.push(offset);
     query += ` LIMIT $${params.length - 1} OFFSET $${params.length}`;
@@ -54,9 +43,6 @@ class AssetRepository {
     return result.rows;
   }
 
-  /**
-   * Get total asset count
-   */
   async getAssetCount(filters = {}) {
     let query = "SELECT COUNT(*) as count FROM assets WHERE 1=1";
     const params = [];
@@ -75,27 +61,18 @@ class AssetRepository {
     return parseInt(result.rows[0].count, 10);
   }
 
-  /**
-   * Get single asset by ID
-   */
   async getAssetById(id) {
     const query = "SELECT * FROM assets WHERE id = $1";
     const result = await pool.query(query, [id]);
     return result.rows[0] || null;
   }
 
-  /**
-   * Get asset by code
-   */
   async getAssetByCode(code) {
     const query = "SELECT * FROM assets WHERE asset_code = $1";
     const result = await pool.query(query, [code]);
     return result.rows[0] || null;
   }
 
-  /**
-   * Create asset
-   */
   async createAsset(assetCode, assetName, assetType, purchaseDate, purchaseCost, status = "available") {
     const query = `
       INSERT INTO assets (asset_code, asset_name, asset_type, purchase_date, purchase_cost, status)
@@ -113,9 +90,6 @@ class AssetRepository {
     return result.rows[0];
   }
 
-  /**
-   * Update asset
-   */
   async updateAsset(id, updates) {
     const allowedFields = [
       "asset_code",
@@ -149,17 +123,11 @@ class AssetRepository {
     return result.rows[0];
   }
 
-  /**
-   * Delete asset
-   */
   async deleteAsset(id) {
     const query = "DELETE FROM assets WHERE id = $1";
     await pool.query(query, [id]);
   }
 
-  /**
-   * Get asset allocation history
-   */
   async getAllocationHistory(assetId) {
     const query = `
       SELECT 
@@ -186,9 +154,6 @@ class AssetRepository {
     return result.rows;
   }
 
-  /**
-   * Create asset allocation
-   */
   async createAllocation(
     assetId,
     employeeId,
@@ -211,9 +176,6 @@ class AssetRepository {
     return result.rows[0];
   }
 
-  /**
-   * Return asset allocation
-   */
   async returnAllocation(allocationId, returnDate, remarks = "", client = null) {
     const db = client || pool;
     const query = `
@@ -226,9 +188,6 @@ class AssetRepository {
     return result.rows[0];
   }
 
-  /**
-   * Get current allocation for asset
-   */
   async getCurrentAllocation(assetId) {
     const query = `
       SELECT * FROM asset_allocations 
@@ -239,9 +198,6 @@ class AssetRepository {
     return result.rows[0] || null;
   }
 
-  /**
-   * Add asset history record
-   */
   async addHistory(assetId, action, remarks = "", createdBy = null, client = null) {
     const db = client || pool;
     const query = `
@@ -253,9 +209,6 @@ class AssetRepository {
     return result.rows[0];
   }
 
-  /**
-   * Get asset history
-   */
   async getHistory(assetId, limit = 50, offset = 0) {
     const query = `
       SELECT 
@@ -271,9 +224,6 @@ class AssetRepository {
     return result.rows;
   }
 
-  /**
-   * Get assets by employee
-   */
   async getAssetsByEmployee(employeeId) {
     const query = `
       SELECT 

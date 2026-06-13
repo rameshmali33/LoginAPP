@@ -1,9 +1,4 @@
-/**
- * Notifications Page
- * View and manage user notifications
- */
-
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import api from "../services/api";
 import Layout from "../components/Layout";
 import Swal from "sweetalert2";
@@ -13,14 +8,9 @@ const Notifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 });
-  const [filter, setFilter] = useState("all"); // all, unread
+  const [filter, setFilter] = useState("all");
 
-  useEffect(() => {
-    fetchNotifications();
-    fetchUnreadCount();
-  }, [pagination.page, filter]);
-
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get("/notifications", {
@@ -37,16 +27,21 @@ const Notifications = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, pagination.limit, pagination.page]);
 
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     try {
       const response = await api.get("/notifications/unread-count");
       setUnreadCount(response.data.unreadCount);
     } catch (error) {
       console.error("Failed to fetch unread count:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    fetchUnreadCount();
+  }, [fetchNotifications, fetchUnreadCount]);
 
   const handleMarkAsRead = async (notificationId) => {
     try {
@@ -81,7 +76,6 @@ const Notifications = () => {
         )}
       </div>
 
-      {/* Filter Tabs */}
       <div className="mb-4">
         <button
           className={`btn me-2 ${filter === "all" ? "btn-primary" : "btn-outline-primary"}`}
@@ -103,7 +97,6 @@ const Notifications = () => {
         </button>
       </div>
 
-      {/* Notifications List */}
       <div className="row">
         <div className="col-lg-8">
           {loading ? (
@@ -148,7 +141,6 @@ const Notifications = () => {
                 </div>
               ))}
 
-              {/* Pagination */}
               {pagination.pages > 1 && (
                 <nav aria-label="Notifications pagination">
                   <ul className="pagination justify-content-center">

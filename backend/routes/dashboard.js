@@ -10,9 +10,6 @@ router.get(
   roleMiddleware("admin", "employee"),
   async (req, res) => {
     try {
-      
-      console.log("DASHBOARD USER:", req.user);
-      
       if (req.user.role === "employee") {
         if (!req.user.employee_profile_id) {
           return res.status(200).json({

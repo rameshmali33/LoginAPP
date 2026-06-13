@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import {
@@ -58,12 +58,14 @@ function PayrollManagement() {
     other_deductions: 0,
   });
 
-  useEffect(() => {
-    loadInitialData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const loadRecords = useCallback(async (periodId) => {
+    if (!periodId) return;
+    const response = await api.get(`/payroll/periods/${periodId}/records`);
+    setRecords(response.data.records || []);
+    setSummary(response.data.summary || null);
   }, []);
 
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       setLoading(true);
       const requests = [];
@@ -92,14 +94,11 @@ function PayrollManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [canManage, isLinked, loadRecords]);
 
-  const loadRecords = async (periodId) => {
-    if (!periodId) return;
-    const response = await api.get(`/payroll/periods/${periodId}/records`);
-    setRecords(response.data.records || []);
-    setSummary(response.data.summary || null);
-  };
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
 
   const handleCreatePeriod = async (e) => {
     e.preventDefault();

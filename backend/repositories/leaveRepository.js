@@ -122,7 +122,6 @@ class LeaveRepository {
     return result.rows;
   }
 
-  // Update status (supports Transaction client)
   async updateApplicationStatus(client, id, status) {
     const queryExecutor = client || pool;
     const query = `
@@ -135,7 +134,6 @@ class LeaveRepository {
     return result.rows[0];
   }
 
-  // Deduct available days (supports Transaction client)
   async deductLeaveBalance(client, employeeId, leaveTypeId, deductDays) {
     const queryExecutor = client || pool;
     const query = `
@@ -148,7 +146,6 @@ class LeaveRepository {
     return result.rows[0];
   }
 
-  // Add history record (supports Transaction client)
   async createApprovalHistory(client, leaveId, approvedByUserId, action, remarks) {
     const queryExecutor = client || pool;
     const query = `
@@ -160,7 +157,6 @@ class LeaveRepository {
     return result.rows[0];
   }
 
-  // Aggregate stats & reports (Using Subqueries, Joins, Window Functions, Group By)
   async getLeaveStats() {
     const totalRequests = await pool.query("SELECT COUNT(*) FROM leave_applications");
     const pendingManager = await pool.query("SELECT COUNT(*) FROM leave_applications WHERE status = 'pending_manager'");
@@ -178,7 +174,6 @@ class LeaveRepository {
   }
 
   async getDepartmentWiseLeaves() {
-    // Advanced query with GROUP BY and JOIN
     const query = `
       SELECT 
         d.department_name,
@@ -195,7 +190,6 @@ class LeaveRepository {
   }
 
   async getMonthlyLeaveTrends() {
-    // Aggregation of approved leaves monthly
     const query = `
       SELECT 
         TO_CHAR(la.from_date, 'Mon YYYY') AS month_year,
@@ -213,7 +207,6 @@ class LeaveRepository {
   }
 
   async getMostAbsentEmployees() {
-    // Uses ROW_NUMBER() Window function as required by Document 2
     const query = `
       WITH employee_absences AS (
         SELECT 

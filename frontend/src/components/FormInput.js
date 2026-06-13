@@ -1,7 +1,3 @@
-/**
- * FormInput Component
- * Reusable input component for forms
- */
 
 import React from "react";
 

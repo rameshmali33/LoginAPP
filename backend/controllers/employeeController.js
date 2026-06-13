@@ -1,14 +1,9 @@
-/**
- * Employee Controller
- * Request handlers mapping request parameters/body to employeeService.
- */
 
 const employeeService = require("../services/employeeService");
 
 class EmployeeController {
   createEmployee = async (req, res, next) => {
     try {
-      // req.validated is set by Joi validation middleware
       const employee = await employeeService.createEmployee(req.validated, req.user.id);
       res.status(201).json({
         success: true,
@@ -47,7 +42,6 @@ class EmployeeController {
         );
         res.json(result);
       } else {
-        // Fetch all (high limit) to support backward compatibility with frontend
         const result = await employeeService.getEmployees(1, 100000, filters, sortBy, order);
         res.json(result.employees);
       }

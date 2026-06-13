@@ -4,9 +4,6 @@ const leaveController = require("../controllers/leaveController");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
-// Route configurations with authentication and role authorizations
-
-// Get available leave types (accessible to all authenticated users)
 router.get(
   "/types",
   authMiddleware,
@@ -14,7 +11,6 @@ router.get(
   leaveController.getLeaveTypes
 );
 
-// Get leave balance for current logged-in employee
 router.get(
   "/balances",
   authMiddleware,
@@ -22,7 +18,6 @@ router.get(
   leaveController.getLeaveBalances
 );
 
-// Apply for a new leave request (Employees only)
 router.post(
   "/apply",
   authMiddleware,
@@ -30,7 +25,6 @@ router.post(
   leaveController.applyLeave
 );
 
-// Get leave history for logged-in employee
 router.get(
   "/history",
   authMiddleware,
@@ -38,7 +32,6 @@ router.get(
   leaveController.getLeaveHistory
 );
 
-// Get pending leave reviews for managers
 router.get(
   "/pending-manager",
   authMiddleware,
@@ -46,7 +39,6 @@ router.get(
   leaveController.getPendingForManager
 );
 
-// Review (approve/reject) leave request by manager
 router.put(
   "/review-manager/:id",
   authMiddleware,
@@ -54,7 +46,6 @@ router.put(
   leaveController.reviewByManager
 );
 
-// Get pending leave reviews for HR
 router.get(
   "/pending-hr",
   authMiddleware,
@@ -62,7 +53,6 @@ router.get(
   leaveController.getPendingForHR
 );
 
-// Review (approve/reject) leave request by HR (ACID transaction deduction)
 router.put(
   "/review-hr/:id",
   authMiddleware,
@@ -70,7 +60,6 @@ router.put(
   leaveController.reviewByHR
 );
 
-// Get Leave aggregates, monthly trends, absence rankings, and balances report (HR and Admin only)
 router.get(
   "/reports",
   authMiddleware,

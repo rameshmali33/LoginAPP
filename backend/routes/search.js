@@ -1,7 +1,3 @@
-/**
- * Global Search Routes
- * Search across employees, departments, skills
- */
 
 const express = require("express");
 const router = express.Router();
@@ -11,10 +7,6 @@ const logger = require("../utils/logger");
 
 router.use(authMiddleware);
 
-/**
- * GET /api/search?q=term
- * Global search across employees, departments, skills
- */
 router.get("/", async (req, res, next) => {
   try {
     const { q } = req.query;
@@ -30,7 +22,6 @@ router.get("/", async (req, res, next) => {
     const searchTerm = `%${q}%`;
     const limit = 10;
 
-    // Search employees
     const employeeQuery = `
       SELECT 
         u.id,
@@ -46,7 +37,6 @@ router.get("/", async (req, res, next) => {
       LIMIT $2
     `;
 
-    // Search departments
     const departmentQuery = `
       SELECT 
         id,
@@ -57,7 +47,6 @@ router.get("/", async (req, res, next) => {
       LIMIT $2
     `;
 
-    // Search skills
     const skillQuery = `
       SELECT 
         id,

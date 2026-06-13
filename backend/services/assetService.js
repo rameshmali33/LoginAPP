@@ -1,7 +1,3 @@
-/**
- * Asset Service
- * Business logic for asset management: create, allocate, return, history
- */
 
 const assetRepository = require("../repositories/assetRepository");
 const pool = require("../config/db");
@@ -9,9 +5,6 @@ const logger = require("../utils/logger");
 const notificationService = require("./notificationService");
 
 class AssetService {
-  /**
-   * Get all assets with pagination
-   */
   async getAssets(page = 1, limit = 10, filters = {}, sortBy = "created_at", order = "DESC") {
     const offset = (page - 1) * limit;
     const assets = await assetRepository.getAssets(
@@ -34,9 +27,6 @@ class AssetService {
     };
   }
 
-  /**
-   * Get single asset with allocation history
-   */
   async getAssetById(id) {
     const asset = await assetRepository.getAssetById(id);
     if (!asset) {
@@ -53,11 +43,7 @@ class AssetService {
     };
   }
 
-  /**
-   * Create new asset
-   */
   async createAsset(assetCode, assetName, assetType, purchaseDate, purchaseCost) {
-    // Check for duplicate asset code
     const existing = await assetRepository.getAssetByCode(assetCode);
     if (existing) {
       throw new Error(`Asset code ${assetCode} already exists`);
@@ -72,16 +58,12 @@ class AssetService {
       "available"
     );
 
-    // Log creation
     await assetRepository.addHistory(asset.id, "CREATED", `Asset created: ${assetName}`);
 
     logger.info(`Asset created: ${asset.id} (${assetCode})`);
     return asset;
   }
 
-  /**
-   * Update asset
-   */
   async updateAsset(id, updates) {
     const existing = await assetRepository.getAssetById(id);
     if (!existing) {
@@ -90,7 +72,6 @@ class AssetService {
 
     const asset = await assetRepository.updateAsset(id, updates);
 
-    // Log update
     await assetRepository.addHistory(
       id,
       "UPDATED",
@@ -112,16 +93,12 @@ class AssetService {
     return asset;
   }
 
-  /**
-   * Delete asset
-   */
   async deleteAsset(id) {
     const existing = await assetRepository.getAssetById(id);
     if (!existing) {
       throw new Error("Asset not found");
     }
 
-    // Check if asset is currently allocated
     const current = await assetRepository.getCurrentAllocation(id);
     if (current) {
       throw new Error("Cannot delete an allocated asset. Return it first.");
@@ -131,9 +108,6 @@ class AssetService {
     logger.info(`Asset deleted: ${id}`);
   }
 
-  /**
-   * Allocate asset to employee
-   */
   async allocateAsset(assetId, employeeId, allocatedBy, allocatedDate, remarks = "") {
     const asset = await assetRepository.getAssetById(assetId);
     if (!asset) {
@@ -144,7 +118,6 @@ class AssetService {
       throw new Error(`Asset status is ${asset.status}, cannot allocate`);
     }
 
-    // Check for current allocation
     const currentAlloc = await assetRepository.getCurrentAllocation(assetId);
     if (currentAlloc) {
       throw new Error("Asset already allocated to another employee");
@@ -154,7 +127,6 @@ class AssetService {
     try {
       await client.query("BEGIN");
 
-      // Create allocation
       const allocation = await assetRepository.createAllocation(
         assetId,
         employeeId,
@@ -163,10 +135,8 @@ class AssetService {
         remarks
       );
 
-      // Update asset status
       await assetRepository.updateAsset(assetId, { status: "allocated" });
 
-      // Log to history
       await assetRepository.addHistory(
         assetId,
         "ALLOCATED",
@@ -194,16 +164,11 @@ class AssetService {
     }
   }
 
-  /**
-   * Return asset from employee
-   */
   async returnAsset(allocationId, returnDate, remarks = "", returnedBy = null) {
-    // Get allocation
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
 
-      // Query allocation and asset details
       const allocQuery = `SELECT * FROM asset_allocations WHERE id = $1`;
       const allocResult = await client.query(allocQuery, [allocationId]);
       const allocation = allocResult.rows[0];
@@ -216,7 +181,6 @@ class AssetService {
         throw new Error(`Allocation status is ${allocation.status}, cannot return`);
       }
 
-      // Return the allocation
       const returned = await assetRepository.returnAllocation(
         allocationId,
         returnDate,
@@ -224,10 +188,8 @@ class AssetService {
         client
       );
 
-      // Update asset status
       await assetRepository.updateAsset(allocation.asset_id, { status: "available" });
 
-      // Log to history
       await assetRepository.addHistory(
         allocation.asset_id,
         "RETURNED",
@@ -255,16 +217,10 @@ class AssetService {
     }
   }
 
-  /**
-   * Get assets allocated to an employee
-   */
   async getEmployeeAssets(employeeId) {
     return await assetRepository.getAssetsByEmployee(employeeId);
   }
 
-  /**
-   * Get asset status summary
-   */
   async getAssetSummary() {
     const query = `
       SELECT 

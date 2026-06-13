@@ -171,10 +171,6 @@ router.get(
   }
 );
 
-/**
- * GET /api/reports/leaves
- * Get leave report data
- */
 router.get(
   "/leaves",
   authMiddleware,
@@ -194,10 +190,6 @@ router.get(
   }
 );
 
-/**
- * GET /api/reports/leaves/export
- * Export leave report to Excel
- */
 router.get(
   "/leaves/export",
   authMiddleware,
@@ -242,10 +234,6 @@ router.get(
   }
 );
 
-/**
- * GET /api/reports/assets
- * Get asset report data
- */
 router.get(
   "/assets",
   authMiddleware,
@@ -265,10 +253,6 @@ router.get(
   }
 );
 
-/**
- * GET /api/reports/assets/export
- * Export asset report to Excel
- */
 router.get(
   "/assets/export",
   authMiddleware,

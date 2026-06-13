@@ -1,7 +1,6 @@
 const path = require("path");
 const dotenv = require("dotenv");
 
-// Environment Based Configuration
 const env = process.env.NODE_ENV || "development";
 dotenv.config({ path: path.join(__dirname, `.env.${env}`) });
 dotenv.config(); // Fallback to root .env
@@ -36,17 +35,14 @@ const { initCronJobs } = require("./jobs/cronJobs");
 
 const app = express();
 
-// Initialize Background Cron Jobs
 initCronJobs();
 
-// Security Middlewares
 app.use(
   helmet({
     crossOriginResourcePolicy: false, // Allows browser access to uploaded files (multer)
   })
 );
 
-// API Rate Limiting to prevent spam/abuse
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 300, // Limit each IP to 300 requests per window
@@ -61,10 +57,8 @@ app.use("/api", limiter);
 app.use(cors());
 app.use(express.json());
 
-// API Documentation (Swagger)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Mount routes with API versioning support
 const v1Prefix = "/api/v1";
 const legacyPrefix = "/api";
 
@@ -88,7 +82,6 @@ const legacyPrefix = "/api";
   app.use(`${prefix}/health`, healthRoutes);
 });
 
-// Serve uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.listen(process.env.PORT, () => {
@@ -114,5 +107,4 @@ app.get("/test-email", async (req, res) => {
   }
 });
 
-// Error handling middleware (must be last)
 app.use(errorHandler);

@@ -1,7 +1,3 @@
-/**
- * Auth Repository
- * Database access layer for authentication and user management
- */
 
 const pool = require("../config/db");
 

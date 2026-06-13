@@ -48,7 +48,6 @@ function Layout({ children, title }) {
         setRole(decoded.role || "");
         setEmployeeProfileId(decoded.employee_profile_id || null);
         
-        // Fetch unread notification count
         fetchUnreadCount();
       } catch (error) {
         console.error("Token Decode Error:", error);
@@ -136,8 +135,8 @@ function Layout({ children, title }) {
     <div className={`app-layout ${darkMode ? "dark-mode" : ""}`}>
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <h3>EPMS</h3>
-          <p>Employee System</p>
+          <h3>EP</h3>
+          <p>Management System</p>
         </div>
 
         <nav className="sidebar-menu">

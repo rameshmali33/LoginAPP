@@ -10,35 +10,30 @@ const logger = require('./utils/logger');
 
 async function run() {
   try {
-    // Run original leave tables migration
     const leaveSqlPath = path.join(__dirname, 'migrations', 'create_leave_tables.sql');
     const leaveSql = fs.readFileSync(leaveSqlPath, 'utf8');
     logger.info("Running leave database migrations...");
     await pool.query(leaveSql);
     logger.info("✅ Leave migrations completed successfully!");
 
-    // Run attendance tables migration
     const attendanceSqlPath = path.join(__dirname, 'migrations', 'create_attendance_tables.sql');
     const attendanceSql = fs.readFileSync(attendanceSqlPath, 'utf8');
     logger.info("Running attendance database migrations...");
     await pool.query(attendanceSql);
     logger.info("Attendance migrations completed successfully!");
 
-    // Run payroll tables migration
     const payrollSqlPath = path.join(__dirname, 'migrations', 'create_payroll_tables.sql');
     const payrollSql = fs.readFileSync(payrollSqlPath, 'utf8');
     logger.info("Running payroll database migrations...");
     await pool.query(payrollSql);
     logger.info("Payroll migrations completed successfully!");
 
-    // Run Document 5 tables migration
     const doc5SqlPath = path.join(__dirname, 'migrations', 'create_document5_tables.sql');
     const doc5Sql = fs.readFileSync(doc5SqlPath, 'utf8');
     logger.info("Running Document 5 database migrations...");
     await pool.query(doc5Sql);
     logger.info("✅ Document 5 migrations completed successfully!");
 
-    // Run optimization migration (indexes & views)
     const optSqlPath = path.join(__dirname, 'migrations', 'optimize_database.sql');
     const optSql = fs.readFileSync(optSqlPath, 'utf8');
     logger.info("Running database optimization migrations...");

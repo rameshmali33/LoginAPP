@@ -1,16 +1,8 @@
-/**
- * Audit Controller
- * Request handlers for audit log operations
- */
 
 const auditService = require("../services/auditService");
 const logger = require("../utils/logger");
 
 class AuditController {
-  /**
-   * GET /api/audit-logs
-   * Get audit logs (admin only)
-   */
   getAuditLogs = async (req, res, next) => {
     try {
       const {
@@ -47,10 +39,6 @@ class AuditController {
     }
   };
 
-  /**
-   * GET /api/audit-logs/:tableName/:recordId
-   * Get audit history for a specific record
-   */
   getRecordHistory = async (req, res, next) => {
     try {
       const { tableName, recordId } = req.params;

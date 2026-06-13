@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import {
@@ -55,15 +55,7 @@ function AttendanceManagement() {
     notes: "",
   });
 
-  useEffect(() => {
-    if (!isLinked && canManage) {
-      setActiveTab("team-attendance");
-    }
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const requests = [];
@@ -101,7 +93,14 @@ function AttendanceManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [canManage, filters, isLinked]);
+
+  useEffect(() => {
+    if (!isLinked && canManage) {
+      setActiveTab("team-attendance");
+    }
+    loadData();
+  }, [canManage, isLinked, loadData]);
 
   const refreshWithFilters = async () => {
     await loadData();

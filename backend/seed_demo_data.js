@@ -495,11 +495,6 @@ async function run() {
   await seedAuditAndActivity(userIds);
   await seedProfileLinkRequest(userIds, employeeIds);
 
-  console.log("Demo data seeded successfully.");
-  console.log(`Employees: ${employeeIds.length}`);
-  console.log(`Departments: ${departments.length}`);
-  console.log(`Skills: ${skills.length}`);
-  console.log("Default demo password for seeded users: Demo@12345");
 }
 
 run()

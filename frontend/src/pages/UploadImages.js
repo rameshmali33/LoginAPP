@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import API from "../services/api";
@@ -17,16 +17,7 @@ function UploadImages() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-
-    return () => {
-      previewImages.forEach((img) => URL.revokeObjectURL(img.preview));
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employeeId]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -45,7 +36,17 @@ function UploadImages() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [employeeId, navigate]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    return () => {
+      previewImages.forEach((img) => URL.revokeObjectURL(img.preview));
+    };
+  }, [previewImages]);
 
   const getImageSrc = (img) => {
     return img.image_url || img.url || img.image_path || img.path;

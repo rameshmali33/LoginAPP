@@ -1,14 +1,7 @@
-/**
- * Audit Repository
- * Direct SQL queries for audit log operations
- */
 
 const pool = require("../config/db");
 
 class AuditRepository {
-  /**
-   * Create audit log entry
-   */
   async createAuditLog(
     tableName,
     actionType,
@@ -37,32 +30,25 @@ class AuditRepository {
     return result.rows[0];
   }
 
-  /**
-   * Get audit logs with pagination and filtering
-   */
   async getAuditLogs(limit = 50, offset = 0, filters = {}) {
     let query = "SELECT * FROM audit_logs WHERE 1=1";
     const params = [];
 
-    // Filter by table name
     if (filters.table_name) {
       params.push(filters.table_name);
       query += ` AND table_name = $${params.length}`;
     }
 
-    // Filter by action type
     if (filters.action_type) {
       params.push(filters.action_type);
       query += ` AND action_type = $${params.length}`;
     }
 
-    // Filter by performed_by user
     if (filters.performed_by) {
       params.push(filters.performed_by);
       query += ` AND performed_by = $${params.length}`;
     }
 
-    // Filter by date range
     if (filters.dateFrom) {
       params.push(filters.dateFrom);
       query += ` AND created_at >= $${params.length}`;
@@ -72,7 +58,6 @@ class AuditRepository {
       query += ` AND created_at <= $${params.length}`;
     }
 
-    // Pagination
     params.push(limit);
     params.push(offset);
     query += ` ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`;
@@ -81,9 +66,6 @@ class AuditRepository {
     return result.rows;
   }
 
-  /**
-   * Get total audit log count
-   */
   async getAuditLogCount(filters = {}) {
     let query = "SELECT COUNT(*) as count FROM audit_logs WHERE 1=1";
     const params = [];
@@ -113,18 +95,12 @@ class AuditRepository {
     return parseInt(result.rows[0].count, 10);
   }
 
-  /**
-   * Get audit log by ID
-   */
   async getAuditLogById(id) {
     const query = "SELECT * FROM audit_logs WHERE id = $1";
     const result = await pool.query(query, [id]);
     return result.rows[0] || null;
   }
 
-  /**
-   * Get audit logs for a specific record
-   */
   async getRecordAuditHistory(tableName, recordId) {
     const query = `
       SELECT 

@@ -10,7 +10,6 @@ const logger = require("../utils/logger");
 
 const uploadsDir = path.join(__dirname, "../uploads");
 
-// Create enterprise directories
 const subdirectories = ["employees", "documents", "certificates", "assets"];
 subdirectories.forEach((subdir) => {
   const dirPath = path.join(uploadsDir, subdir);
@@ -35,7 +34,6 @@ const addActivityLog = async (action, description, userId) => {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Determine the directory based on type parameter
     const type = req.query.type || "employees";
     const folder = subdirectories.includes(type) ? type : "employees";
     cb(null, path.join(uploadsDir, folder));

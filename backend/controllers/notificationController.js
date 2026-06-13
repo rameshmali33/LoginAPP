@@ -1,16 +1,8 @@
-/**
- * Notification Controller
- * Request handlers for notification operations
- */
 
 const notificationService = require("../services/notificationService");
 const logger = require("../utils/logger");
 
 class NotificationController {
-  /**
-   * GET /api/notifications
-   * Get current user's notifications
-   */
   getNotifications = async (req, res, next) => {
     try {
       const { page = 1, limit = 20, unread_only = false } = req.query;
@@ -34,10 +26,6 @@ class NotificationController {
     }
   };
 
-  /**
-   * GET /api/notifications/unread-count
-   * Get unread notification count for current user
-   */
   getUnreadCount = async (req, res, next) => {
     try {
       const userId = req.user.id;
@@ -54,10 +42,6 @@ class NotificationController {
     }
   };
 
-  /**
-   * PUT /api/notifications/:id/read
-   * Mark single notification as read
-   */
   markAsRead = async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -77,10 +61,6 @@ class NotificationController {
     }
   };
 
-  /**
-   * PUT /api/notifications/read-all
-   * Mark all notifications as read for current user
-   */
   markAllAsRead = async (req, res, next) => {
     try {
       const userId = req.user.id;

@@ -4,7 +4,6 @@ const logger = require("../utils/logger");
 const getHealth = async (req, res, next) => {
   try {
     const start = Date.now();
-    // simple query to validate DB connection
     await pool.query("SELECT 1");
     const duration = Date.now() - start;
 

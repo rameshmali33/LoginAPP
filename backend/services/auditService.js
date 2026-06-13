@@ -1,16 +1,8 @@
-/**
- * Audit Service
- * Business logic for audit trail
- */
 
 const auditRepository = require("../repositories/auditRepository");
 const logger = require("../utils/logger");
 
 class AuditService {
-  /**
-   * Log a data change
-   * Called from services when entities are created/updated/deleted
-   */
   async logChange(
     tableName,
     actionType,
@@ -39,13 +31,9 @@ class AuditService {
       return auditLog;
     } catch (error) {
       logger.error(`Failed to create audit log for ${tableName}:`, error);
-      // Don't throw - audit failure shouldn't break the main operation
     }
   }
 
-  /**
-   * Get audit logs with pagination
-   */
   async getAuditLogs(page = 1, limit = 50, filters = {}) {
     const offset = (page - 1) * limit;
     const logs = await auditRepository.getAuditLogs(limit, offset, filters);
@@ -62,9 +50,6 @@ class AuditService {
     };
   }
 
-  /**
-   * Get audit history for a specific record
-   */
   async getRecordHistory(tableName, recordId) {
     return await auditRepository.getRecordAuditHistory(tableName, recordId);
   }

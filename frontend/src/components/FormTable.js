@@ -1,9 +1,4 @@
-/**
- * FormTable Component
- * Reusable sortable table with pagination
- */
-
-import React, { useState } from "react";
+import React from "react";
 
 const FormTable = ({
   columns,

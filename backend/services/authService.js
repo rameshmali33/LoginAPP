@@ -1,7 +1,3 @@
-/**
- * Auth Service
- * Business logic for authentication, signup, password resets, and verification
- */
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -48,7 +44,6 @@ class AuthService {
       logger.info("Verification email sent successfully");
     } catch (err) {
       logger.warn("Failed to send verification email:", err.message);
-      // We still complete the signup but warn
     }
 
     return newUser;

@@ -2,7 +2,6 @@ const Joi = require("joi");
 const leaveService = require("../services/leaveService");
 
 class LeaveController {
-  // Schema definitions
   applyLeaveSchema = Joi.object({
     leave_type_id: Joi.number().integer().required(),
     from_date: Joi.date().iso().required(),

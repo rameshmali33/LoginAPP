@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import {
@@ -36,10 +36,8 @@ function LeaveManagement() {
 
   const leaveAPI = useLeave();
 
-  // Active navigation tab for roles with multiple views (Admin/HR/Manager)
   const [activeTab, setActiveTab] = useState("my-leaves");
 
-  // General States
   const [leaveTypes, setLeaveTypes] = useState([]);
   const [balances, setBalances] = useState([]);
   const [history, setHistory] = useState([]);
@@ -48,7 +46,6 @@ function LeaveManagement() {
   const [reportsData, setReportsData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Form States (Apply Leave)
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [applyForm, setApplyForm] = useState({
     leave_type_id: "",
@@ -58,33 +55,16 @@ function LeaveManagement() {
   });
   const [submittingApply, setSubmittingApply] = useState(false);
 
-  // Review Modal States (Manager/HR approvals)
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewForm, setReviewForm] = useState({
     id: null,
-    level: "", // 'manager' or 'hr'
-    status: "", // 'approved' or 'rejected'
+    level: "",
+    status: "",
     remarks: "",
   });
   const [submittingReview, setSubmittingReview] = useState(false);
 
-  useEffect(() => {
-    // Default tabs depending on role
-    if (role === "manager") {
-      setActiveTab("manager-approvals");
-    } else if (role === "hr") {
-      setActiveTab("hr-approvals");
-    } else if (role === "admin") {
-      setActiveTab("my-leaves");
-    } else {
-      setActiveTab("my-leaves");
-    }
-
-    loadInitialData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role]);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       setLoading(true);
       const types = await leaveAPI.getLeaveTypes();
@@ -114,9 +94,20 @@ function LeaveManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isLinked, leaveAPI, role]);
 
-  // Handle Apply Leave Submission
+  useEffect(() => {
+    if (role === "manager") {
+      setActiveTab("manager-approvals");
+    } else if (role === "hr") {
+      setActiveTab("hr-approvals");
+    } else {
+      setActiveTab("my-leaves");
+    }
+
+    loadInitialData();
+  }, [loadInitialData, role]);
+
   const handleApplySubmit = async (e) => {
     e.preventDefault();
     if (!applyForm.leave_type_id || !applyForm.from_date || !applyForm.to_date) {
@@ -138,13 +129,11 @@ function LeaveManagement() {
     }
   };
 
-  // Open Review Action Dialog
   const openReviewDialog = (id, level, status) => {
     setReviewForm({ id, level, status, remarks: "" });
     setShowReviewModal(true);
   };
 
-  // Handle Review Submission (Manager / HR)
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -204,7 +193,6 @@ function LeaveManagement() {
     });
   };
 
-  // Setup Reports Charts Data
   const deptChartData = reportsData
     ? {
       labels: reportsData.departmentLeaves.map((d) => d.department_name),
@@ -243,7 +231,6 @@ function LeaveManagement() {
 
   return (
     <Layout title="Leave Management">
-      {/* Role Navigation Header */}
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div className="d-flex gap-2">
           {isLinked && (
@@ -290,7 +277,6 @@ function LeaveManagement() {
         )}
       </div>
 
-      {/* 1. EMPLOYEE TABS: My Leaves */}
       {activeTab === "my-leaves" && (
         <div>
           {!isLinked ? (
@@ -305,7 +291,6 @@ function LeaveManagement() {
             </Card>
           ) : (
             <>
-              {/* Leave Balances Cards */}
               <h5 className="fw-bold mb-3">Available Balances</h5>
               <div className="row g-3 mb-4">
                 {balances.map((bal) => (
@@ -324,7 +309,6 @@ function LeaveManagement() {
                 ))}
               </div>
 
-              {/* History Table */}
               <Card title="My Leave History">
                 <Table
                   headers={["Leave Type", "From Date", "To Date", "Total Days", "Reason", "Status", "Applied On"]}
@@ -355,7 +339,6 @@ function LeaveManagement() {
         </div>
       )}
 
-      {/* 2. MANAGER TABS: Manager Reviews */}
       {activeTab === "manager-approvals" && (
         <Card title="Manager Review Panel">
           <Table
@@ -398,7 +381,6 @@ function LeaveManagement() {
         </Card>
       )}
 
-      {/* 3. HR TABS: HR Final Approvals */}
       {activeTab === "hr-approvals" && (
         <Card title="HR Final Approval Panel">
           <Table
@@ -441,10 +423,8 @@ function LeaveManagement() {
         </Card>
       )}
 
-      {/* 4. HR/ADMIN TABS: Leave Analytics & Reports */}
       {activeTab === "reports" && reportsData && (
         <div>
-          {/* Top Aggregated Summary Metrics */}
           <div className="row g-3 mb-4">
             <div className="col-lg-3 col-6">
               <div className="p-3 border rounded shadow-sm bg-white">
@@ -472,7 +452,6 @@ function LeaveManagement() {
             </div>
           </div>
 
-          {/* Analytics Charts */}
           <div className="row g-4 mb-4">
             <div className="col-lg-6">
               <Card title="Leaves by Department">
@@ -497,7 +476,6 @@ function LeaveManagement() {
           </div>
 
           <div className="row g-4">
-            {/* Absence Leaderboard */}
             <div className="col-lg-6">
               <Card title="Most Absent Employees (Top 10)">
                 <Table
@@ -519,7 +497,6 @@ function LeaveManagement() {
               </Card>
             </div>
 
-            {/* General Leave Balance Sheet */}
             <div className="col-lg-6">
               <Card title="Employee Leave Balances Report">
                 <Table
@@ -544,8 +521,6 @@ function LeaveManagement() {
         </div>
       )}
 
-      {/* 5. MODALS */}
-      {/* Apply Leave Modal */}
       <Modal show={showApplyModal} onClose={() => setShowApplyModal(false)} title="Apply for Leave">
         <form onSubmit={handleApplySubmit}>
           <div className="mb-3">
@@ -610,7 +585,6 @@ function LeaveManagement() {
         </form>
       </Modal>
 
-      {/* Review Remarks Modal */}
       <Modal show={showReviewModal} onClose={() => setShowReviewModal(false)} title="Add Review Remarks">
         <form onSubmit={handleReviewSubmit}>
           <div className="mb-3 text-center">

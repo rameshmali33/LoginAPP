@@ -1,7 +1,3 @@
-/**
- * Auth Controller
- * Handles incoming auth requests, Joi schema validation, and forwards to authService.
- */
 
 const authService = require("../services/authService");
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import API from "../services/api";
@@ -7,6 +7,7 @@ import Layout from "../components/Layout";
 function ProfileLinkRequest() {
   const token = localStorage.getItem("token");
   const user = token ? jwtDecode(token) : {};
+  const userEmail = user.email;
 
   const [employees, setEmployees] = useState([]);
   const [employeeProfileId, setEmployeeProfileId] = useState("");
@@ -14,11 +15,7 @@ function ProfileLinkRequest() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
-
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -26,7 +23,7 @@ function ProfileLinkRequest() {
 
       const matchedProfiles = res.data.filter(
         (emp) =>
-          emp.email?.toLowerCase().trim() === user.email?.toLowerCase().trim()
+          emp.email?.toLowerCase().trim() === userEmail?.toLowerCase().trim()
       );
 
       setEmployees(matchedProfiles);
@@ -39,7 +36,11 @@ function ProfileLinkRequest() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userEmail]);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, [fetchEmployees]);
 
   const submitRequest = async (e) => {
     e.preventDefault();

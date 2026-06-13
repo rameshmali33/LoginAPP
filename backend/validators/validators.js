@@ -1,11 +1,6 @@
-/**
- * Joi Validation Schemas
- * Reusable validation schemas for employees, assets, allocations, etc.
- */
 
 const Joi = require("joi");
 
-// Asset Schemas
 const assetCreateSchema = Joi.object({
   asset_code: Joi.string().required().max(50),
   asset_name: Joi.string().required().max(200),
@@ -44,7 +39,6 @@ const assetReturnSchema = Joi.object({
   remarks: Joi.string().max(500).allow(""),
 });
 
-// Employee Schemas
 const employeeCreateSchema = Joi.object({
   name: Joi.string().required().max(200),
   email: Joi.string().email().required(),
@@ -67,7 +61,6 @@ const employeeUpdateSchema = Joi.object({
   status: Joi.string().valid("active", "inactive"),
 });
 
-// Auth Schemas
 const signupSchema = Joi.object({
   name: Joi.string().required().max(200),
   email: Joi.string().email().required(),
@@ -87,18 +80,15 @@ const resetPasswordSchema = Joi.object({
   password: Joi.string().required().min(6).max(100),
 });
 
-// Search Schema
 const searchSchema = Joi.object({
   q: Joi.string().required().min(2).max(100),
 });
 
-// Pagination Schema
 const paginationSchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(10),
 });
 
-// Filter Schema
 const filterSchema = Joi.object({
   sortBy: Joi.string().max(50),
   order: Joi.string().valid("ASC", "DESC").default("ASC"),
@@ -108,7 +98,6 @@ const filterSchema = Joi.object({
   dateTo: Joi.date().iso(),
 });
 
-// Validation middleware function
 const validateSchema = (schema) => {
   return (req, res, next) => {
     const { error, value } = schema.validate(req.body, {
@@ -129,7 +118,6 @@ const validateSchema = (schema) => {
   };
 };
 
-// Query validation middleware
 const validateQuery = (schema) => {
   return (req, res, next) => {
     const { error, value } = schema.validate(req.query, {
@@ -151,7 +139,6 @@ const validateQuery = (schema) => {
 };
 
 module.exports = {
-  // Schemas
   assetCreateSchema,
   assetUpdateSchema,
   assetAllocationSchema,
@@ -166,7 +153,6 @@ module.exports = {
   paginationSchema,
   filterSchema,
 
-  // Middleware
   validateSchema,
   validateQuery,
 };

@@ -1,6 +1,5 @@
 import React from "react";
 
-// Modal supports both `show` and `isOpen` prop names for compatibility
 const Modal = ({ show, isOpen, onClose, title, children }) => {
   const visible = typeof isOpen !== "undefined" ? isOpen : show;
   if (!visible) return null;

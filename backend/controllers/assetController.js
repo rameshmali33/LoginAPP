@@ -1,17 +1,9 @@
-/**
- * Asset Controller
- * Request handlers for asset operations with Joi validation
- */
 
 const assetService = require("../services/assetService");
 const { assetCreateSchema, assetUpdateSchema, assetAllocationSchema, assetReturnSchema } = require("../validators/validators");
 const logger = require("../utils/logger");
 
 class AssetController {
-  /**
-   * GET /api/assets
-   * List all assets with pagination, filtering, sorting
-   */
   getAssets = async (req, res, next) => {
     try {
       const { page = 1, limit = 10, status, asset_type, sortBy = "created_at", order = "DESC" } = req.query;
@@ -39,10 +31,6 @@ class AssetController {
     }
   };
 
-  /**
-   * GET /api/assets/:id
-   * Get single asset with allocation history
-   */
   getAsset = async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -62,10 +50,6 @@ class AssetController {
     }
   };
 
-  /**
-   * POST /api/assets
-   * Create new asset
-   */
   createAsset = async (req, res, next) => {
     try {
       const { error, value } = assetCreateSchema.validate(req.body);
@@ -97,10 +81,6 @@ class AssetController {
     }
   };
 
-  /**
-   * PUT /api/assets/:id
-   * Update asset
-   */
   updateAsset = async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -131,10 +111,6 @@ class AssetController {
     }
   };
 
-  /**
-   * DELETE /api/assets/:id
-   * Delete asset
-   */
   deleteAsset = async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -155,10 +131,6 @@ class AssetController {
     }
   };
 
-  /**
-   * POST /api/assets/:id/allocate
-   * Allocate asset to employee
-   */
   allocateAsset = async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -191,10 +163,6 @@ class AssetController {
     }
   };
 
-  /**
-   * POST /api/assets/:id/return
-   * Return asset from employee
-   */
   returnAsset = async (req, res, next) => {
     try {
       const { id } = req.params; // allocation_id
@@ -226,10 +194,6 @@ class AssetController {
     }
   };
 
-  /**
-   * GET /api/assets/summary
-   * Get asset status summary
-   */
   getAssetSummary = async (req, res, next) => {
     try {
       const summary = await assetService.getAssetSummary();

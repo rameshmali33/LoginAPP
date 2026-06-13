@@ -1,9 +1,4 @@
-/**
- * Audit Logs Page
- * Admin-only view of all data changes in the system
- */
-
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import api from "../services/api";
 import Layout from "../components/Layout";
 import FormTable from "../components/FormTable";
@@ -25,11 +20,7 @@ const AuditLogs = () => {
     dateTo: "",
   });
 
-  useEffect(() => {
-    fetchAuditLogs();
-  }, [pagination.page, filters]);
-
-  const fetchAuditLogs = async () => {
+  const fetchAuditLogs = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -45,7 +36,11 @@ const AuditLogs = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, pagination.limit, pagination.page]);
+
+  useEffect(() => {
+    fetchAuditLogs();
+  }, [fetchAuditLogs]);
 
   const handleViewDetails = (log) => {
     setSelectedLog(log);
@@ -86,7 +81,6 @@ const AuditLogs = () => {
       <div className="container-fluid py-4">
       <h2 className="mb-4">Audit Trail</h2>
 
-      {/* Filters */}
       <div className="row mb-4">
         <div className="col-md-2">
           <FormSelect
@@ -150,7 +144,6 @@ const AuditLogs = () => {
         </div>
       </div>
 
-      {/* Table */}
       <FormTable
         columns={columns}
         data={logs}
@@ -160,7 +153,6 @@ const AuditLogs = () => {
         loading={loading}
       />
 
-      {/* Detail Modal */}
       <Modal
         isOpen={showDetailModal}
         title="Audit Log Details"

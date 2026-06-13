@@ -3,13 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import API from "../services/api";
 import {
+  FaArrowRight,
+  FaBriefcase,
+  FaChartLine,
+  FaEnvelope,
   FaEye,
   FaEyeSlash,
-  FaUsers,
-  FaChartPie,
+  FaIdBadge,
+  FaLock,
   FaShieldAlt,
-  FaFileExcel,
+  FaUserCheck,
 } from "react-icons/fa";
+import "./Login.css";
 
 function Login() {
   const [form, setForm] = useState({
@@ -63,175 +68,147 @@ function Login() {
   };
 
   return (
-    <div
-      className="min-vh-100 d-flex align-items-center"
-      style={{
-        background:
-          "linear-gradient(135deg, #0f172a 0%, #1e3a8a 45%, #2563eb 100%)",
-      }}
-    >
-      <div className="container py-5">
-        <div className="row align-items-center justify-content-center g-5">
-          <div className="col-lg-6 text-white">
-            <div className="mb-4">
-              <div
-                className="d-inline-flex align-items-center justify-content-center rounded-4 bg-white text-primary shadow mb-4"
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  fontSize: "34px",
-                  fontWeight: "800",
-                }}
-              >
-                EP
-              </div>
+    <main className="login-page">
+      <section className="login-brand-panel">
+        <div className="login-brand-mark">
+          <span>EP</span>
+        </div>
 
-              <h1 className="display-5 fw-bold mb-3">
-                Employee Profile Management System
-              </h1>
+        <div className="login-brand-copy">
+          <p className="login-kicker">Employee operations suite</p>
+          <h1>EP Management System</h1>
+          <p>
+            Manage people records, attendance, payroll, assets, reports, and
+            approvals from one secure workspace.
+          </p>
+        </div>
 
-              <p className="lead text-white-50 mb-4">
-                A secure and modern platform to manage employee profiles,
-                departments, skills, images, reports and role-based dashboards
-                in one place.
-              </p>
-            </div>
-
-            <div className="row g-3">
-              <div className="col-md-6">
-                <div className="p-3 rounded-4 bg-white bg-opacity-10 border border-light border-opacity-25 h-100">
-                  <FaUsers className="fs-3 mb-3" />
-                  <h6 className="fw-bold">Employee Management</h6>
-                  <p className="small text-white-50 mb-0">
-                    Create, update and manage complete employee profiles.
-                  </p>
-                </div>
-              </div>
-
-              <div className="col-md-6">
-                <div className="p-3 rounded-4 bg-white bg-opacity-10 border border-light border-opacity-25 h-100">
-                  <FaShieldAlt className="fs-3 mb-3" />
-                  <h6 className="fw-bold">Secure Access</h6>
-                  <p className="small text-white-50 mb-0">
-                    JWT authentication with admin and employee role access.
-                  </p>
-                </div>
-              </div>
-
-              <div className="col-md-6">
-                <div className="p-3 rounded-4 bg-white bg-opacity-10 border border-light border-opacity-25 h-100">
-                  <FaChartPie className="fs-3 mb-3" />
-                  <h6 className="fw-bold">Smart Dashboard</h6>
-                  <p className="small text-white-50 mb-0">
-                    View statistics, charts, recent activity and insights.
-                  </p>
-                </div>
-              </div>
-
-              <div className="col-md-6">
-                <div className="p-3 rounded-4 bg-white bg-opacity-10 border border-light border-opacity-25 h-100">
-                  <FaFileExcel className="fs-3 mb-3" />
-                  <h6 className="fw-bold">Reports & Export</h6>
-                  <p className="small text-white-50 mb-0">
-                    Generate employee reports and export data to Excel.
-                  </p>
-                </div>
-              </div>
-            </div>
+        <div className="login-metrics">
+          <div>
+            <strong>29</strong>
+            <span>Employees</span>
           </div>
-
-          <div className="col-lg-5 col-md-8">
-            <div className="card shadow-lg border-0 rounded-4">
-              <div className="card-body p-5">
-                <div className="text-center mb-4">
-                  <div
-                    className="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white mb-3"
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      fontSize: "24px",
-                      fontWeight: "700",
-                    }}
-                  >
-                    EP
-                  </div>
-
-                  <h2 className="fw-bold mb-1">Welcome Back</h2>
-                  <p className="text-muted mb-0">
-                    Login to access your dashboard
-                  </p>
-                </div>
-
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-3">
-                    <label className="form-label fw-semibold">Email</label>
-
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Enter your email"
-                      className="form-control form-control-lg"
-                      value={form.email}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label fw-semibold">Password</label>
-
-                    <div className="input-group input-group-lg">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        name="password"
-                        placeholder="Enter your password"
-                        className="form-control"
-                        value={form.password}
-                        onChange={handleChange}
-                        required
-                      />
-
-                      <button
-                        type="button"
-                        className="btn btn-outline-secondary"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <FaEyeSlash /> : <FaEye />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <Link to="/forgot-password" className="text-decoration-none">
-                      Forgot Password?
-                    </Link>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="btn btn-primary btn-lg w-100"
-                    disabled={loading}
-                  >
-                    {loading ? "Logging in..." : "Login"}
-                  </button>
-                </form>
-
-                <div className="text-center mt-4">
-                  <span className="text-muted">Don't have an account?</span>{" "}
-                  <Link to="/signup" className="fw-semibold text-decoration-none">
-                    Register
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <p className="text-center text-white-50 small mt-4 mb-0">
-              © {new Date().getFullYear()} Employee Profile Management System
-            </p>
+          <div>
+            <strong>12</strong>
+            <span>Departments</span>
+          </div>
+          <div>
+            <strong>24/7</strong>
+            <span>Access</span>
           </div>
         </div>
-      </div>
-    </div>
+
+        <div className="login-feature-grid">
+          <div className="login-feature">
+            <FaUserCheck />
+            <div>
+              <strong>Employee Records</strong>
+              <span>Profiles, departments, and skills.</span>
+            </div>
+          </div>
+
+          <div className="login-feature">
+            <FaChartLine />
+            <div>
+              <strong>Analytics</strong>
+              <span>Live dashboard and reports.</span>
+            </div>
+          </div>
+
+          <div className="login-feature">
+            <FaBriefcase />
+            <div>
+              <strong>Payroll Ready</strong>
+              <span>Formal salary and deduction flow.</span>
+            </div>
+          </div>
+
+          <div className="login-feature">
+            <FaShieldAlt />
+            <div>
+              <strong>Role Security</strong>
+              <span>Admin and employee access control.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="login-form-panel">
+        <div className="login-card">
+          <div className="login-card-header">
+            <div className="login-card-icon">
+              <FaIdBadge />
+            </div>
+            <div>
+              <h2>Sign in</h2>
+              <p>Use your registered company credentials.</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="login-form">
+            <div className="login-field">
+              <label htmlFor="email">Email address</label>
+              <div className="login-input-wrap">
+                <FaEnvelope />
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="name@company.com"
+                  value={form.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="login-field">
+              <label htmlFor="password">Password</label>
+              <div className="login-input-wrap">
+                <FaLock />
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Enter password"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                />
+
+                <button
+                  type="button"
+                  className="login-password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </div>
+
+            <div className="login-form-row">
+              <span>Secure session</span>
+              <Link to="/forgot-password">Forgot password?</Link>
+            </div>
+
+            <button type="submit" className="login-submit" disabled={loading}>
+              {loading ? "Signing in..." : "Sign in"}
+              {!loading && <FaArrowRight />}
+            </button>
+          </form>
+
+          <div className="login-register">
+            <span>Need an account?</span>
+            <Link to="/signup">Create account</Link>
+          </div>
+        </div>
+
+        <p className="login-footer">
+          (c) {new Date().getFullYear()} EP Management System
+        </p>
+      </section>
+    </main>
   );
 }
 

@@ -1,9 +1,4 @@
-/**
- * AssetManagement Page
- * Manage company assets: create, allocate, return, view history
- */
-
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import api from "../services/api";
 import FormTable from "../components/FormTable";
 import FormInput from "../components/FormInput";
@@ -39,12 +34,7 @@ const AssetManagement = () => {
     remarks: "",
   });
 
-  useEffect(() => {
-    fetchAssets();
-    fetchEmployees();
-  }, [pagination.page, filters]);
-
-  const fetchAssets = async () => {
+  const fetchAssets = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -60,17 +50,21 @@ const AssetManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, pagination.limit, pagination.page]);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
       const response = await api.get("/employees");
-      // Support both API shapes: either `res.data` is array or `{ data: [...] }`
       setEmployees(response.data?.data ?? response.data ?? []);
     } catch (error) {
       console.error("Failed to fetch employees:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchAssets();
+    fetchEmployees();
+  }, [fetchAssets, fetchEmployees]);
 
   const handleCreateAsset = async () => {
     try {
@@ -210,7 +204,6 @@ const AssetManagement = () => {
         </button>
       </div>
 
-      {/* Filters */}
       <div className="row mb-4">
         <div className="col-md-3">
           <FormSelect
@@ -229,7 +222,6 @@ const AssetManagement = () => {
         </div>
       </div>
 
-      {/* Table */}
       <FormTable
         columns={columns}
         data={assets}
@@ -239,7 +231,6 @@ const AssetManagement = () => {
         loading={loading}
       />
 
-      {/* Create Modal */}
       <Modal
         isOpen={showCreateModal}
         title="Create New Asset"
@@ -287,7 +278,6 @@ const AssetManagement = () => {
         </button>
       </Modal>
 
-      {/* Allocate Modal */}
       <Modal
         isOpen={showAllocateModal}
         title={`Allocate ${currentAsset?.asset_name}`}
@@ -326,7 +316,6 @@ const AssetManagement = () => {
         </button>
       </Modal>
 
-      {/* History Modal */}
       <Modal
         isOpen={showHistoryModal}
         title={`Asset History: ${currentAsset?.asset_name}`}

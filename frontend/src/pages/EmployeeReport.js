@@ -1,15 +1,19 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import API from "../services/api";
 import Layout from "../components/Layout";
 
+const getReportRows = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  return [];
+};
+
 function EmployeeReport() {
-  // Tab state
   const [activeTab, setActiveTab] = useState("employees");
 
-  // Employee tab state
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [search, setSearch] = useState("");
@@ -17,7 +21,6 @@ function EmployeeReport() {
   const [statusFilter, setStatusFilter] = useState("");
   const [sortBy, setSortBy] = useState("");
 
-  // Leave and Asset tab states
   const [leaves, setLeaves] = useState([]);
   const [assets, setAssets] = useState([]);
   const [leaveStatusFilter, setLeaveStatusFilter] = useState("");
@@ -25,13 +28,51 @@ function EmployeeReport() {
 
   const [loading, setLoading] = useState(true);
 
-  const getReportRows = (payload) => {
-    if (Array.isArray(payload)) return payload;
-    if (Array.isArray(payload?.data)) return payload.data;
-    return [];
-  };
+  const fetchEmployees = useCallback(async () => {
+    try {
+      const res = await API.get("/reports/employees");
+      setEmployees(res.data);
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error", "Failed to load employees", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Fetch data based on active tab
+  const fetchDepartments = useCallback(async () => {
+    try {
+      const res = await API.get("/departments");
+      setDepartments(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
+  const fetchLeaves = useCallback(async () => {
+    try {
+      const res = await API.get("/reports/leaves");
+      setLeaves(getReportRows(res.data));
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error", "Failed to load leaves report", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchAssets = useCallback(async () => {
+    try {
+      const res = await API.get("/reports/assets");
+      setAssets(getReportRows(res.data));
+    } catch (error) {
+      console.error(error);
+      Swal.fire("Error", "Failed to load assets report", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     if (activeTab === "employees") {
@@ -42,54 +83,8 @@ function EmployeeReport() {
     } else if (activeTab === "assets") {
       fetchAssets();
     }
-  }, [activeTab]);
+  }, [activeTab, fetchAssets, fetchDepartments, fetchEmployees, fetchLeaves]);
 
-  const fetchEmployees = async () => {
-    try {
-      const res = await API.get("/reports/employees");
-      setEmployees(res.data);
-    } catch (error) {
-      console.error(error);
-      Swal.fire("Error", "Failed to load employees", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchDepartments = async () => {
-    try {
-      const res = await API.get("/departments");
-      setDepartments(res.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const fetchLeaves = async () => {
-    try {
-      const res = await API.get("/reports/leaves");
-      setLeaves(getReportRows(res.data));
-    } catch (error) {
-      console.error(error);
-      Swal.fire("Error", "Failed to load leaves report", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAssets = async () => {
-    try {
-      const res = await API.get("/reports/assets");
-      setAssets(getReportRows(res.data));
-    } catch (error) {
-      console.error(error);
-      Swal.fire("Error", "Failed to load assets report", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ========== EMPLOYEE TAB LOGIC ==========
   const filteredEmployees = employees
     .filter((emp) => {
       const searchText = search.toLowerCase();
@@ -137,7 +132,6 @@ function EmployeeReport() {
     (emp) => emp.status === "inactive"
   ).length;
 
-  // ========== LEAVE TAB LOGIC ==========
   const filteredLeaves = leaves
     .filter((leave) => {
       if (leaveStatusFilter === "") return true;
@@ -151,7 +145,6 @@ function EmployeeReport() {
     rejected: leaves.filter((l) => l.status === "rejected").length,
   };
 
-  // ========== ASSET TAB LOGIC ==========
   const filteredAssets = assets
     .filter((asset) => {
       if (assetStatusFilter === "") return true;
@@ -165,7 +158,6 @@ function EmployeeReport() {
     inactive: assets.filter((a) => a.status === "inactive").length,
   };
 
-  // ========== EXPORT FUNCTIONS ==========
   const exportEmployeesToExcel = () => {
     if (filteredEmployees.length === 0) {
       Swal.fire("No Data", "No employee data to export", "warning");
@@ -386,7 +378,6 @@ function EmployeeReport() {
           </div>
         </div>
 
-        {/* Tabs Navigation */}
         <ul className="nav nav-tabs" role="tablist">
           <li className="nav-item" role="presentation">
             <button
@@ -418,7 +409,6 @@ function EmployeeReport() {
         </ul>
       </div>
 
-      {/* ========== EMPLOYEES TAB ========== */}
       {activeTab === "employees" && (
         <>
           <div className="row g-4 mb-4">
@@ -619,7 +609,6 @@ function EmployeeReport() {
         </>
       )}
 
-      {/* ========== LEAVES TAB ========== */}
       {activeTab === "leaves" && (
         <>
           <div className="row g-4 mb-4">
@@ -774,7 +763,6 @@ function EmployeeReport() {
         </>
       )}
 
-      {/* ========== ASSETS TAB ========== */}
       {activeTab === "assets" && (
         <>
           <div className="row g-4 mb-4">
