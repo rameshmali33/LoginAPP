@@ -26,7 +26,10 @@ export const resolveImageUrl = (image) => {
   try {
     const url = new URL(raw);
 
-    if (url.pathname.startsWith("/uploads/")) {
+    if (
+      url.pathname.startsWith("/uploads/") &&
+      ["localhost", "127.0.0.1"].includes(url.hostname)
+    ) {
       return `${apiOrigin}${url.pathname}`;
     }
 

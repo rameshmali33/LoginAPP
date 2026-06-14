@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -18,6 +18,16 @@ function EmployeeProfile() {
   const [images, setImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [imageActionLoading, setImageActionLoading] = useState(false);
+
+  const fetchImages = useCallback(async () => {
+    try {
+      const imgRes = await API.get(`/uploads/${id}`);
+      setImages(imgRes.data);
+    } catch {
+      setImages([]);
+    }
+  }, [id]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -34,12 +44,7 @@ function EmployeeProfile() {
           setSkills([]);
         }
 
-        try {
-          const imgRes = await API.get(`/uploads/${id}`);
-          setImages(imgRes.data);
-        } catch {
-          setImages([]);
-        }
+        await fetchImages();
       } catch (error) {
         Swal.fire("Error", "Error loading employee profile", "error");
         navigate("/dashboard");
@@ -49,7 +54,84 @@ function EmployeeProfile() {
     };
 
     fetchProfile();
-  }, [id, navigate]);
+  }, [fetchImages, id, navigate]);
+
+  const handleReplaceImage = async (image) => {
+    const { value: file } = await Swal.fire({
+      title: "Replace image",
+      input: "file",
+      inputAttributes: {
+        accept: "image/*",
+      },
+      showCancelButton: true,
+      confirmButtonText: "Replace",
+      preConfirm: (selectedFile) => {
+        if (!selectedFile) {
+          Swal.showValidationMessage("Please select an image");
+          return false;
+        }
+
+        if (!selectedFile.type.startsWith("image/")) {
+          Swal.showValidationMessage("Only image files are allowed");
+          return false;
+        }
+
+        return selectedFile;
+      },
+    });
+
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      setImageActionLoading(true);
+      const res = await API.put(`/uploads/image/${image.id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      Swal.fire("Updated", res.data.message, "success");
+      fetchImages();
+    } catch (error) {
+      Swal.fire(
+        "Update Failed",
+        error.response?.data?.message || "Could not update image",
+        "error"
+      );
+    } finally {
+      setImageActionLoading(false);
+    }
+  };
+
+  const handleDeleteImage = async (image) => {
+    const result = await Swal.fire({
+      title: "Delete image?",
+      text: "This image will be removed from the employee profile.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc3545",
+      confirmButtonText: "Delete",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setImageActionLoading(true);
+      const res = await API.delete(`/uploads/image/${image.id}`);
+      Swal.fire("Deleted", res.data.message, "success");
+      fetchImages();
+    } catch (error) {
+      Swal.fire(
+        "Delete Failed",
+        error.response?.data?.message || "Could not delete image",
+        "error"
+      );
+    } finally {
+      setImageActionLoading(false);
+    }
+  };
 
   const getProfileCompletion = () => {
     if (!employee) return 0;
@@ -307,7 +389,18 @@ function EmployeeProfile() {
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h5 className="fw-bold mb-0">Uploaded Images</h5>
-                <span className="badge bg-primary">{images.length}</span>
+                <div className="d-flex align-items-center gap-2">
+                  <span className="badge bg-primary">{images.length}</span>
+                  {user.role === "admin" && (
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary btn-sm"
+                      onClick={() => navigate(`/upload-images/${employee.id}`)}
+                    >
+                      Manage
+                    </button>
+                  )}
+                </div>
               </div>
 
               {images.length === 0 ? (
@@ -318,7 +411,7 @@ function EmployeeProfile() {
                     const imageSrc = resolveImageUrl(img);
 
                     return (
-                      <div className="col-4" key={img.id}>
+                      <div className="col-md-4 col-6" key={img.id}>
                         <div
                           className="border rounded shadow-sm overflow-hidden"
                           style={{
@@ -336,6 +429,34 @@ function EmployeeProfile() {
                             }}
                           />
                         </div>
+
+                        {user.role === "admin" && (
+                          <div className="d-flex gap-1 mt-2 flex-wrap">
+                            <button
+                              type="button"
+                              className="btn btn-outline-primary btn-sm flex-fill"
+                              onClick={() => setSelectedImage(imageSrc)}
+                            >
+                              View
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-outline-secondary btn-sm flex-fill"
+                              onClick={() => handleReplaceImage(img)}
+                              disabled={imageActionLoading}
+                            >
+                              Replace
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-outline-danger btn-sm flex-fill"
+                              onClick={() => handleDeleteImage(img)}
+                              disabled={imageActionLoading}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
