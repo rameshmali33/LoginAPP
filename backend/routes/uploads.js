@@ -76,6 +76,18 @@ const upload = multer({
   },
 });
 
+const getStoredFilePath = (imageUrl) => {
+  const parts = String(imageUrl || "").split("/");
+  const filename = parts.pop();
+  const folder = parts.pop();
+
+  if (!filename || !folder || !subdirectories.includes(folder)) {
+    return null;
+  }
+
+  return path.join(uploadsDir, folder, filename);
+};
+
 router.post(
   "/:employeeId",
   authMiddleware,
@@ -173,6 +185,74 @@ router.get(
   }
 );
 
+router.put(
+  "/image/:imageId",
+  authMiddleware,
+  roleMiddleware("admin"),
+  upload.single("image"),
+  async (req, res, next) => {
+    try {
+      const { imageId } = req.params;
+      const type = req.query.type || "employees";
+      const folder = subdirectories.includes(type) ? type : "employees";
+
+      if (!req.file) {
+        return res.status(400).json({
+          message: "No image uploaded",
+        });
+      }
+
+      const image = await pool.query(
+        `
+        SELECT ei.*, ep.name AS employee_name
+        FROM employee_images ei
+        LEFT JOIN employee_profiles ep
+          ON ei.employee_id = ep.id
+        WHERE ei.id = $1
+        `,
+        [imageId]
+      );
+
+      if (image.rows.length === 0) {
+        return res.status(404).json({
+          message: "Image not found",
+        });
+      }
+
+      const oldFilePath = getStoredFilePath(image.rows[0].image_url);
+      const imageUrl = `/uploads/${folder}/${req.file.filename}`;
+
+      const updatedImage = await pool.query(
+        `
+        UPDATE employee_images
+        SET image_url = $1
+        WHERE id = $2
+        RETURNING *
+        `,
+        [imageUrl, imageId]
+      );
+
+      if (oldFilePath && fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath);
+      }
+
+      await addActivityLog(
+        "Image Updated",
+        `Image updated for ${image.rows[0].employee_name || "employee"}`,
+        req.user.id
+      );
+
+      res.json({
+        message: "Image updated successfully",
+        image: updatedImage.rows[0],
+      });
+    } catch (error) {
+      logger.error("Update Image Error:", error);
+      next(error);
+    }
+  }
+);
+
 router.delete(
   "/image/:imageId",
   authMiddleware,
@@ -198,15 +278,11 @@ router.delete(
         });
       }
 
-      const imageUrl = image.rows[0].image_url;
-      const parts = imageUrl.split("/");
-      const filename = parts.pop();
-      const folder = parts.pop(); // e.g. employees, documents, etc.
-      const filePath = path.join(uploadsDir, folder, filename);
+      const filePath = getStoredFilePath(image.rows[0].image_url);
 
       await pool.query("DELETE FROM employee_images WHERE id = $1", [imageId]);
 
-      if (fs.existsSync(filePath)) {
+      if (filePath && fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
 

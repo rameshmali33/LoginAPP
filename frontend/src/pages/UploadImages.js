@@ -17,6 +17,7 @@ function UploadImages() {
 
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [imageActionLoading, setImageActionLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -123,6 +124,83 @@ function UploadImages() {
       );
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleReplaceImage = async (image) => {
+    const { value: file } = await Swal.fire({
+      title: "Replace image",
+      input: "file",
+      inputAttributes: {
+        accept: "image/*",
+      },
+      showCancelButton: true,
+      confirmButtonText: "Replace",
+      preConfirm: (selectedFile) => {
+        if (!selectedFile) {
+          Swal.showValidationMessage("Please select an image");
+          return false;
+        }
+
+        if (!selectedFile.type.startsWith("image/")) {
+          Swal.showValidationMessage("Only image files are allowed");
+          return false;
+        }
+
+        return selectedFile;
+      },
+    });
+
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      setImageActionLoading(true);
+      const res = await API.put(`/uploads/image/${image.id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      Swal.fire("Updated", res.data.message, "success");
+      fetchData();
+    } catch (error) {
+      Swal.fire(
+        "Update Failed",
+        error.response?.data?.message || "Could not update image",
+        "error"
+      );
+    } finally {
+      setImageActionLoading(false);
+    }
+  };
+
+  const handleDeleteImage = async (image) => {
+    const result = await Swal.fire({
+      title: "Delete image?",
+      text: "This image will be removed from the employee profile.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc3545",
+      confirmButtonText: "Delete",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setImageActionLoading(true);
+      const res = await API.delete(`/uploads/image/${image.id}`);
+      Swal.fire("Deleted", res.data.message, "success");
+      fetchData();
+    } catch (error) {
+      Swal.fire(
+        "Delete Failed",
+        error.response?.data?.message || "Could not delete image",
+        "error"
+      );
+    } finally {
+      setImageActionLoading(false);
     }
   };
 
@@ -287,6 +365,32 @@ function UploadImages() {
                         className="w-100 h-100"
                         style={{ objectFit: "cover" }}
                       />
+                    </div>
+
+                    <div className="d-flex gap-2 mt-2">
+                      <button
+                        type="button"
+                        className="btn btn-outline-primary btn-sm flex-fill"
+                        onClick={() => setSelectedImage(imageSrc)}
+                      >
+                        View
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary btn-sm flex-fill"
+                        onClick={() => handleReplaceImage(img)}
+                        disabled={imageActionLoading}
+                      >
+                        Replace
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => handleDeleteImage(img)}
+                        disabled={imageActionLoading}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 );
