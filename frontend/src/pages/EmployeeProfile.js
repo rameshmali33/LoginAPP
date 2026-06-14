@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import API from "../services/api";
 import Layout from "../components/Layout";
+import { resolveImageUrl } from "../utils/imageUrls";
 
 function EmployeeProfile() {
   const { id } = useParams();
@@ -49,10 +50,6 @@ function EmployeeProfile() {
 
     fetchProfile();
   }, [id, navigate]);
-
-  const getImageSrc = (img) => {
-    return img.image_url || img.url || img.image_path || img.path;
-  };
 
   const getProfileCompletion = () => {
     if (!employee) return 0;
@@ -318,7 +315,7 @@ function EmployeeProfile() {
               ) : (
                 <div className="row g-3">
                   {images.map((img) => {
-                    const imageSrc = getImageSrc(img);
+                    const imageSrc = resolveImageUrl(img);
 
                     return (
                       <div className="col-4" key={img.id}>

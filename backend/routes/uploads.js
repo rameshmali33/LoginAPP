@@ -105,10 +105,9 @@ router.post(
       }
 
       const uploadedImages = [];
-      const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
 
       for (const file of req.files) {
-        const imageUrl = `${backendUrl}/uploads/${folder}/${file.filename}`;
+        const imageUrl = `/uploads/${folder}/${file.filename}`;
 
         const result = await pool.query(
           `

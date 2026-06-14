@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import API from "../services/api";
 import Layout from "../components/Layout";
+import { resolveImageUrl } from "../utils/imageUrls";
 
 function UploadImages() {
   const { employeeId } = useParams();
@@ -47,10 +48,6 @@ function UploadImages() {
       previewImages.forEach((img) => URL.revokeObjectURL(img.preview));
     };
   }, [previewImages]);
-
-  const getImageSrc = (img) => {
-    return img.image_url || img.url || img.image_path || img.path;
-  };
 
   const handleChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -275,7 +272,7 @@ function UploadImages() {
           ) : (
             <div className="row g-3">
               {existingImages.map((img) => {
-                const imageSrc = getImageSrc(img);
+                const imageSrc = resolveImageUrl(img);
 
                 return (
                   <div className="col-md-3 col-6" key={img.id}>

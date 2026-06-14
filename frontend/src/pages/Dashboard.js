@@ -27,6 +27,7 @@ import {
 } from "react-icons/fa";
 import API from "../services/api";
 import Layout from "../components/Layout";
+import { resolveImageUrl } from "../utils/imageUrls";
 import "./Dashboard.css";
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
@@ -520,8 +521,8 @@ function EmployeeDashboard({ stats, formatCurrency, setSelectedImage }) {
         ) : (
           <div className="employee-image-grid">
             {stats.images.map((img) => (
-              <button type="button" key={img.id} onClick={() => setSelectedImage(img.image_url || img.url)}>
-                <img src={img.image_url || img.url} alt="Employee" />
+              <button type="button" key={img.id} onClick={() => setSelectedImage(resolveImageUrl(img))}>
+                <img src={resolveImageUrl(img)} alt="Employee" />
               </button>
             ))}
           </div>
